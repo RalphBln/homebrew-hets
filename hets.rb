@@ -24,8 +24,6 @@ class Hets < Formula
 
   conflicts_with 'hets-binary'
 
-  option 'with-wrapper', 'install the wrapper script to actually run hets.'
-
   def install
 
     inject_version_suffix
@@ -64,14 +62,12 @@ class Hets < Formula
 
     local_lib.install('magic/hets.magic')
 
-    if build.with? 'wrapper'
-      puts 'Install the wrapper script'
-      FileUtils.mv bin.join('hets').to_s, bin.join('hets-bin').to_s
-      # install hets in bin as script which sets according
-      # environment variables
-      # (taken and adjusted from script file in hets root dir)
-      bin.join("hets").open('w') do |f|
-        f.write <<-BASH
+    FileUtils.mv bin.join('hets').to_s, bin.join('hets-bin').to_s
+    # install hets in bin as script which sets according
+    # environment variables
+    # (taken and adjusted from script file in hets root dir)
+    bin.join("hets").open('w') do |f|
+      f.write <<-BASH
 #!/bin/bash
 export HETS_LIB=/usr/local/opt/hets-lib
 export HETS_MAGIC=/usr/local/opt/hets/lib/hets.magic
@@ -81,7 +77,6 @@ export HETS_ONTODMU=$HETS_OWL_TOOLS/OntoDMU.jar
 export PELLET_PATH=/usr/local/opt/pellet
 exec "/usr/local/opt/hets/bin/hets-bin" "$@"
       BASH
-    end
     end
   end
 
