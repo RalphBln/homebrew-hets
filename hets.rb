@@ -69,6 +69,7 @@ class Hets < Formula
     bin.join("hets").open('w') do |f|
       f.write <<-BASH
 #!/bin/bash
+export LANG=en_US.UTF-8
 export HETS_LIB=/usr/local/opt/hets-lib
 export HETS_MAGIC=/usr/local/opt/hets/lib/hets.magic
 export HETS_OWL_TOOLS=/usr/local/opt/hets/lib/hets-owl-tools
