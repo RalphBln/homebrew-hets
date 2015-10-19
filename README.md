@@ -25,14 +25,12 @@ We currently supply hets in two different versions:
 
 #### Build
 
-  - `brew install hets --with-wrapper` will build and install the
+  - `brew install hets` will build and install the
     current version of hets including a wrapper script, which
     will run hets with the correct environment variables set.
   - If you want to install the HEAD (the most *bleeding-edge*)
     version of hets, just add the `--HEAD` switch, like this:
-    `brew install hets --HEAD --with-wrapper`.
-  - If you don't want or need the wrapper script, you can
-    omit the `--with-wrapper` switch.
+    `brew install hets --HEAD`.
   - The first time you're installing hets, you will get
     a message like this:
 
