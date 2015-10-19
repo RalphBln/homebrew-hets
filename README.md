@@ -9,7 +9,7 @@ I hope this helps...
 
 In order to use this tap you'll need to perform some basic command-line tasks:
 
-- `brew tap 0robustus1/hets` to make this tap available to your homebrew installation
+- `brew tap ontohub/hets` to make this tap available to your homebrew installation
 
 
 ### hets
