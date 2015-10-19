@@ -3,8 +3,8 @@ require "formula"
 class HetsBinary < Formula
   # Both the version and the sha1 need to be adjusted when a new
   # dmg-version of hets is released.
-  version '2014-06-13'
-  sha1 '300c5106747547f324fe4dc28649d7c2aba42ba2'
+  version '2015-03-30'
+  sha1 'bccbc3255858538f1c2b76f47b0f7c45fbb89620'
 
   # General settings: should not change usually
   @@dmg_file = "Hets-#{version}.dmg"
