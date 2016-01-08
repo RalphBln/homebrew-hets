@@ -1,8 +1,8 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(realpath $(dirname $0))"
-DIR="${TMPDIR:-/tmp}"
-REPO_DIR="$DIR/Homebrew-Hets-Git"
+DIR="${TMPDIR:-/tmp/}"
+REPO_DIR="${DIR}Homebrew-Hets-Git"
 REPO_URL="https://github.com/spechub/Hets.git"
 
 FORMULA_FILE="hets.rb"
