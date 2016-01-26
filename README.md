@@ -71,5 +71,10 @@ We also have the `hets-update` script which will allow you to manually update th
 to the latest nightly build. It will be installed by either providing the `--with-nightly`
 or the `--with-updater` switch.
 
+# Developers
+
+To update the `hets` formula automatically as soon as there is a new version of Hets, simply invoke `update_hets_package.sh`.
+This script updates the formula and pushes the update to this homebrew tap.
+
 [1]: http://www.informatik.uni-bremen.de/agbkb/forschung/formal_methods/CoFI/hets/index_e.htm
 [2]: https://github.com/ontohub/ontohub
