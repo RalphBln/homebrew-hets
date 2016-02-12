@@ -5,7 +5,7 @@ DIR="${TMPDIR:-/tmp/}"
 REPO_DIR="${DIR}Homebrew-Hets-Git"
 REPO_URL="https://github.com/spechub/Hets.git"
 
-FORMULA_FILE="hets.rb"
+FORMULA_FILES=('hets-server.rb' 'hets.rb');
 
 # retrieve git repository
 cd $DIR
@@ -21,16 +21,18 @@ cd $DIR
 rm -rf $REPO_DIR
 
 # update version info
-cd $SCRIPT_DIR
-if hash gsed 2>/dev/null
-then
-  gsed -i "s/@@version_commit = '.*/@@version_commit = '$version_commit'/g" $FORMULA_FILE
-  gsed -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$version_unix_timestamp'/g" $FORMULA_FILE
-else
-  sed -i "s/@@version_commit = '.*/@@version_commit = '$version_commit'/g" $FORMULA_FILE
-  sed -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$version_unix_timestamp'/g" $FORMULA_FILE
-fi
-
-git add hets.rb
+for FORMULA_FILE in "${FORMULA_FILES[@]}"
+do
+  cd $SCRIPT_DIR
+  if hash gsed 2>/dev/null
+  then
+    gsed -i "s/@@version_commit = '.*/@@version_commit = '$version_commit'/g" $FORMULA_FILE
+    gsed -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$version_unix_timestamp'/g" $FORMULA_FILE
+  else
+    sed -i "s/@@version_commit = '.*/@@version_commit = '$version_commit'/g" $FORMULA_FILE
+    sed -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$version_unix_timestamp'/g" $FORMULA_FILE
+  fi
+  git add $FORMULA_FILE
+done
 git commit -m "Update hets to $version_unix_timestamp."
 git push
