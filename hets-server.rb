@@ -35,7 +35,7 @@ class HetsServer < Formula
     system('cabal', 'update')
     system('cabal', 'install', '--only-dependencies', *flags, *opts)
     puts 'Compiling hets-server...'
-    system('make -j 1')
+    system('make -j 1 hets-server')
     system('strip hets-server')
 
     puts 'Compiling owl-tools...'
