@@ -11,6 +11,7 @@ class HetsServer < Formula
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "0.99-#{@@version_unix_timestamp}"
 
+  depends_on 'ant'
   depends_on 'ghc'
   depends_on 'cabal-install'
   depends_on 'glib'
