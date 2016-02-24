@@ -1,13 +1,14 @@
 require 'formula'
 
 class Darwin < Formula
-  the_version = '1.4.4'
+  the_version = '1.4.5'
   homepage 'http://combination.cs.uiowa.edu/Darwin/'
   url "http://combination.cs.uiowa.edu/Darwin/files/darwin_v#{the_version}.tar.gz"
   version "#{the_version}"
-  sha1 '2ce89af874f903afae9f58b454f711fedb8a1606'
+  sha1 '25edfc2ffb8af176387c6d8046ed447e4ae5a6b7'
 
   depends_on 'ocaml'
+  depends_on 'python'
 
   def install
     ENV['MAKEFLAGS'] = '-j1'
