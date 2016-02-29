@@ -70,6 +70,7 @@ class Hets < Formula
       f.write <<-BASH
 #!/bin/bash
 export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
 export HETS_LIB=/usr/local/opt/hets-lib
 export HETS_MAGIC=/usr/local/opt/hets/lib/hets.magic
 export HETS_OWL_TOOLS=/usr/local/opt/hets/lib/hets-owl-tools
