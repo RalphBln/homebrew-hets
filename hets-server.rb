@@ -6,25 +6,34 @@ class HetsServer < Formula
   # dmg-version of hets is released.
   @@version_commit = 'c7e636bf6c287e3ddfb68d3be233b1c5f8392f03'
   @@version_unix_timestamp = '1457623527'
-  homepage "http://www.informatik.uni-bremen.de/agbkb/forschung/formal_methods/CoFI/hets/index_e.htm"
+  homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "0.99-#{@@version_unix_timestamp}"
 
-  depends_on 'ant'
-  depends_on 'ghc'
-  depends_on 'cabal-install'
-  depends_on 'glib'
-  depends_on 'cairo'
-  depends_on 'gettext'
-  depends_on 'fontconfig'
-  depends_on 'freetype'
+  bottle do
+    root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
+    revision 1
+    sha256 '83554838aeb64ebb846eb4561bc1d9a7165a2b0833f7e5b9b0205ffc479b0972' => :mavericks
+    sha256 '83554838aeb64ebb846eb4561bc1d9a7165a2b0833f7e5b9b0205ffc479b0972' => :yosemite
+    sha256 '83554838aeb64ebb846eb4561bc1d9a7165a2b0833f7e5b9b0205ffc479b0972' => :el_capitan
+  end
+
+  depends_on 'ant' => :build
+  depends_on 'cabal-install' => :build
+  depends_on 'cairo' => :build
+  depends_on 'fontconfig' => :build
+  depends_on 'freetype' => :build
+  depends_on 'gettext' => :build
+  depends_on 'ghc' => :build
+  depends_on 'glib' => :build
 
   depends_on 'hets-lib'
-  depends_on 'pellet'
-  depends_on 'darwin'
-  depends_on 'eprover'
-  depends_on 'spass'
+
+  depends_on 'darwin' => :recommended
+  depends_on 'eprover' => :recommended
+  depends_on 'pellet' => :recommended
+  depends_on 'spass' => :recommended
 
   def install
     inject_version_suffix
@@ -43,15 +52,12 @@ class HetsServer < Formula
     system('make initialize_java')
 
     puts 'Putting everything together'
-    local_bin = prefix.join('bin')
     local_lib = prefix.join('lib')
-
-    local_bin.mkpath
     local_lib.mkpath
 
-    local_bin.install('hets-server')
+    bin.install('hets-server')
 
-    owl_tools = local_lib.join('hets-owl-tools')
+    owl_tools = local_lib.join('hets-server-owl-tools')
 
     owl_tools.mkpath
 
@@ -67,7 +73,8 @@ class HetsServer < Formula
       owl_tools.join('lib').install("OWL2/#{jar}")
     end
 
-    local_lib.install('magic/hets.magic')
+    FileUtils.mv 'magic/hets.magic', 'magic/hets-server.magic'
+    local_lib.install('magic/hets-server.magic')
 
     FileUtils.mv bin.join('hets-server').to_s, bin.join('hets-server-bin').to_s
     # install hets in bin as script which sets according
@@ -79,8 +86,8 @@ class HetsServer < Formula
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 export HETS_LIB=/usr/local/opt/hets-lib
-export HETS_MAGIC=/usr/local/opt/hets-server/lib/hets.magic
-export HETS_OWL_TOOLS=/usr/local/opt/hets-server/lib/hets-owl-tools
+export HETS_MAGIC=/usr/local/opt/hets-server/lib/hets-server.magic
+export HETS_OWL_TOOLS=/usr/local/opt/hets-server/lib/hets-server-owl-tools
 export HETS_APROVE=$HETS_OWL_TOOLS/AProVE.jar
 export HETS_ONTODMU=$HETS_OWL_TOOLS/OntoDMU.jar
 export PELLET_PATH=/usr/local/opt/pellet
@@ -88,6 +95,11 @@ exec "/usr/local/opt/hets-server/bin/hets-server-bin" "$@"
       BASH
     end
   end
+
+  def caveats
+  end
+
+  protected
 
   def version_suffix
     if build.head?
@@ -101,8 +113,5 @@ exec "/usr/local/opt/hets-server/bin/hets-server-bin" "$@"
 
   def inject_version_suffix
     File.open('rev.txt', 'w') { |f| f << version_suffix }
-  end
-
-  def caveats
   end
 end

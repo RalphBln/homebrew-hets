@@ -6,43 +6,62 @@ class Hets < Formula
   # dmg-version of hets is released.
   @@version_commit = 'c7e636bf6c287e3ddfb68d3be233b1c5f8392f03'
   @@version_unix_timestamp = '1457623527'
-  homepage "http://www.informatik.uni-bremen.de/agbkb/forschung/formal_methods/CoFI/hets/index_e.htm"
+  homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "0.99-#{@@version_unix_timestamp}"
 
-  depends_on :x11
-  depends_on 'hets-dependencies'
-  depends_on 'hets-lib'
-  depends_on 'pellet'
-  depends_on 'ant'
-  depends_on 'udrawgraph'
-  depends_on 'darwin'
-  depends_on 'eprover'
-  depends_on 'spass'
-  depends_on 'graphviz'
+  bottle do
+    root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
+    revision 1
+    sha256 '239a2b954f1b6bd17b96ae0353be1fa3048d178089c5cf46fa1a725ed0c5ab66' => :mavericks
+    sha256 '239a2b954f1b6bd17b96ae0353be1fa3048d178089c5cf46fa1a725ed0c5ab66' => :yosemite
+    sha256 '239a2b954f1b6bd17b96ae0353be1fa3048d178089c5cf46fa1a725ed0c5ab66' => :el_capitan
+  end
 
-  conflicts_with 'hets-binary'
+  depends_on 'ant' => :build
+  depends_on 'cabal-install' => :build
+  depends_on 'cairo' => :build
+  depends_on 'fontconfig' => :build
+  depends_on 'freetype' => :build
+  depends_on 'gettext' => :build
+  depends_on 'ghc' => :build
+  depends_on 'glib' => :build
+
+  depends_on 'graphviz'
+  depends_on 'gtk'
+  depends_on 'hets-lib'
+  depends_on 'udrawgraph'
+  depends_on :x11
+
+  depends_on 'darwin' => :recommended
+  depends_on 'eprover' => :recommended
+  depends_on 'pellet' => :recommended
+  depends_on 'spass' => :recommended
 
   def install
-
     inject_version_suffix
 
+    puts 'Installing dependencies...'
+    ghc_prefix = `ghc --print-libdir | sed -e 's+/lib.*/.*++g'`.strip
+    opts = ['--force-reinstalls','-p', '--global', "--prefix=#{ghc_prefix}"]
+    flags = %w(-f -gtkglade)
+    system('cabal', 'update')
+
+    system('cabal', 'install', '--only-dependencies', *flags, *opts)
     puts 'Compiling hets...'
-    system('make -j 1')
+    system('make -j 1 hets')
     system('strip hets')
 
     puts 'Compiling owl-tools...'
     system('make initialize_java')
 
     puts 'Putting everything together'
-    local_bin = prefix.join('bin')
     local_lib = prefix.join('lib')
 
-    local_bin.mkpath
     local_lib.mkpath
 
-    local_bin.install('hets')
+    bin.install('hets')
 
     owl_tools = local_lib.join('hets-owl-tools')
 
@@ -82,6 +101,11 @@ exec "/usr/local/opt/hets/bin/hets-bin" "$@"
     end
   end
 
+  def caveats
+  end
+
+  protected
+
   def version_suffix
     if build.head?
       version = nil
@@ -95,8 +119,4 @@ exec "/usr/local/opt/hets/bin/hets-bin" "$@"
   def inject_version_suffix
     File.open('rev.txt', 'w') { |f| f << version_suffix }
   end
-
-  def caveats
-  end
-
 end
