@@ -215,7 +215,7 @@ update_formula() {
 
 commit_formula_changes() {
   pushd $base_dir > /dev/null
-    git commit -m "Update hets formulas to $(version_unix_timestamp.)"
+    git commit -m "Update hets formulas to $(version_unix_timestamp)"
   popd > /dev/null
 }
 
