@@ -4,8 +4,8 @@ require 'rexml/document'
 class HetsServer < Formula
   # Both the version and the sha1 need to be adjusted when a new
   # dmg-version of hets is released.
-  @@version_commit = '996ed46730f7055445d7c652f1dbd9b7d355b66a'
-  @@version_unix_timestamp = '1458042743'
+  @@version_commit = '10b1256b32bd56a88c210d7a351c91e7ccdad27c'
+  @@version_unix_timestamp = '1458061461'
   homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
@@ -14,9 +14,9 @@ class HetsServer < Formula
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
     revision 1
-    sha256 '59cf09ba6ccaf7410eb38c6fb60a1b1791fb39ceda0019b9897610269673c3d0' => :mavericks
-    sha256 '59cf09ba6ccaf7410eb38c6fb60a1b1791fb39ceda0019b9897610269673c3d0' => :yosemite
-    sha256 '59cf09ba6ccaf7410eb38c6fb60a1b1791fb39ceda0019b9897610269673c3d0' => :el_capitan
+    sha256 'd88aea30b09fa52ed8f1a48a38eaec9b8c447318dff4a3e5bc512af230a7714c' => :mavericks
+    sha256 'd88aea30b09fa52ed8f1a48a38eaec9b8c447318dff4a3e5bc512af230a7714c' => :yosemite
+    sha256 'd88aea30b09fa52ed8f1a48a38eaec9b8c447318dff4a3e5bc512af230a7714c' => :el_capitan
   end
 
   depends_on 'ant' => :build
