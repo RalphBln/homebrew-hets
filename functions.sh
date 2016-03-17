@@ -8,7 +8,7 @@ real_dirname() {
 }
 base_dir=$(real_dirname $0)
 
-dir="build"
+dir="${base_dir}/build"
 
 repo_local_dirname="Homebrew-Hets-Git"
 repo_local_dir="${dir}/${repo_local_dirname}"
@@ -23,14 +23,35 @@ bottle_root_url="http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets"
 formulas=('hets-server' 'hets')
 oses=('mavericks' 'yosemite' 'el_capitan')
 
-retrieve_hets_repository() {
-  pushd $dir > /dev/null
-    git clone --depth 1 $repo_remote_url $repo_local_dir
+sync_hets_repository() {
+  if [ ! -d "$repo_local_dir" ]
+  then
+    clone_hets_repository
+  else
+    pull_hets_repository
+  fi
+}
+
+clone_hets_repository() {
+  if [ ! -d "$repo_local_dir" ]; then
+    local parent_dir="$parent_dir"
+    mkdir -p "$parent_dir"
+    pushd "$parent_dir" > /dev/null
+      git clone "$repo_remote_url" "$repo_local_dir"
+    popd > /dev/null
+  fi
+}
+
+pull_hets_repository() {
+  local package_name="$1"
+  pushd "$repo_local_dir" > /dev/null
+    git fetch
+    git reset --hard origin/master
   popd > /dev/null
 }
 
 remove_hets_repository() {
-  pushd $dir > /dev/null
+  pushd "$(dirname "$repo_local_dir")" > /dev/null
     rm -rf $repo_local_dirname
   popd > /dev/null
 }
