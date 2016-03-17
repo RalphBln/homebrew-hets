@@ -4,8 +4,8 @@ require 'rexml/document'
 class HetsServer < Formula
   # Both the version and the sha1 need to be adjusted when a new
   # dmg-version of hets is released.
-  @@version_commit = '10b1256b32bd56a88c210d7a351c91e7ccdad27c'
-  @@version_unix_timestamp = '1458061461'
+  @@version_commit = '6b19c8272f0789c62480f911d306c1b4d81a539a'
+  @@version_unix_timestamp = '1458196355'
   homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
@@ -14,9 +14,9 @@ class HetsServer < Formula
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
     revision 1
-    sha256 'd88aea30b09fa52ed8f1a48a38eaec9b8c447318dff4a3e5bc512af230a7714c' => :mavericks
-    sha256 'd88aea30b09fa52ed8f1a48a38eaec9b8c447318dff4a3e5bc512af230a7714c' => :yosemite
-    sha256 'd88aea30b09fa52ed8f1a48a38eaec9b8c447318dff4a3e5bc512af230a7714c' => :el_capitan
+    sha256 'bcaee8f8cfcdf171337a4b5eef477dba7083ca155171f92721c0b7abe36a8b70' => :mavericks
+    sha256 'bcaee8f8cfcdf171337a4b5eef477dba7083ca155171f92721c0b7abe36a8b70' => :yosemite
+    sha256 'bcaee8f8cfcdf171337a4b5eef477dba7083ca155171f92721c0b7abe36a8b70' => :el_capitan
   end
 
   depends_on 'ant' => :build
@@ -32,6 +32,7 @@ class HetsServer < Formula
 
   depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
+  depends_on 'owltools' => :recommended
   depends_on 'pellet' => :recommended
   depends_on 'spass' => :recommended
 
@@ -73,8 +74,7 @@ class HetsServer < Formula
       owl_tools.join('lib').install("OWL2/#{jar}")
     end
 
-    FileUtils.mv 'magic/hets.magic', 'magic/hets-server.magic'
-    local_lib.install('magic/hets-server.magic')
+    local_lib.install('magic/hets.magic')
 
     FileUtils.mv bin.join('hets-server').to_s, bin.join('hets-server-bin').to_s
     # install hets in bin as script which sets according
@@ -86,8 +86,8 @@ class HetsServer < Formula
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 export HETS_LIB=/usr/local/opt/hets-lib
-export HETS_MAGIC=/usr/local/opt/hets-server/lib/hets-server.magic
-export HETS_OWL_TOOLS=/usr/local/opt/hets-server/lib/hets-server-owl-tools
+export HETS_MAGIC=/usr/local/opt/hets-server/lib/hets.magic
+export HETS_OWL_TOOLS=/usr/local/opt/hets-server/lib/hets-owl-tools
 export HETS_APROVE=$HETS_OWL_TOOLS/AProVE.jar
 export HETS_ONTODMU=$HETS_OWL_TOOLS/OntoDMU.jar
 export PELLET_PATH=/usr/local/opt/pellet
