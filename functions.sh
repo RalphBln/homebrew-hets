@@ -8,14 +8,14 @@ real_dirname() {
 }
 base_dir=$(real_dirname $0)
 
-dir="${TMPDIR:-/tmp/}"
+dir="build"
 
 repo_local_dirname="Homebrew-Hets-Git"
-repo_local_dir="${dir}${repo_local_dirname}"
+repo_local_dir="${dir}/${repo_local_dirname}"
 repo_remote_url="https://github.com/spechub/Hets.git"
 
 bottle_local_dirname="Homebrew-Hets-Bottle"
-bottle_local_dir="${dir}${bottle_local_dirname}"
+bottle_local_dir="${dir}/${bottle_local_dirname}"
 bottle_remote_destination_host="uni"
 bottle_remote_destination_directory="/home/wwwuser/eugenk/homebrew-hets"
 bottle_root_url="http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets"
