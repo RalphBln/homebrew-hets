@@ -14,9 +14,9 @@ class Hets < Formula
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
     revision 1
-    sha256 'f882b20daef61fbdb88e0459d963344593d25b3c8726febee5256ab63ddb5966' => :mavericks
-    sha256 'f882b20daef61fbdb88e0459d963344593d25b3c8726febee5256ab63ddb5966' => :yosemite
-    sha256 'f882b20daef61fbdb88e0459d963344593d25b3c8726febee5256ab63ddb5966' => :el_capitan
+    sha256 'b54ea28c752a851156340d548a4a40c98dd4fca42cfc3200d224648991008ec7' => :mavericks
+    sha256 'b54ea28c752a851156340d548a4a40c98dd4fca42cfc3200d224648991008ec7' => :yosemite
+    sha256 'b54ea28c752a851156340d548a4a40c98dd4fca42cfc3200d224648991008ec7' => :el_capitan
   end
 
   depends_on 'ant' => :build
@@ -41,30 +41,26 @@ class Hets < Formula
   depends_on 'spass' => :recommended
 
   def install
-    inject_version_suffix
-
     puts 'Installing dependencies...'
     ghc_prefix = `ghc --print-libdir | sed -e 's+/lib.*/.*++g'`.strip
     opts = ['--force-reinstalls','-p', '--global', "--prefix=#{ghc_prefix}"]
     flags = %w(-f -gtkglade)
     system('cabal', 'update')
-
     system('cabal', 'install', '--only-dependencies', *flags, *opts)
-    puts 'Compiling hets...'
-    system('make -j 1 hets')
-    system('strip hets')
+    puts "Compiling #{name}..."
+    system("make -j 1 #{name}")
+    system("strip #{name}")
 
     puts 'Compiling owl-tools...'
     system('make initialize_java')
 
     puts 'Putting everything together'
     local_lib = prefix.join('lib')
-
     local_lib.mkpath
 
-    bin.install('hets')
+    bin.install(name)
 
-    owl_tools = local_lib.join('hets-owl-tools')
+    owl_tools = local_lib.join("#{name}-owl-tools")
 
     owl_tools.mkpath
 
@@ -82,42 +78,26 @@ class Hets < Formula
 
     local_lib.install('magic/hets.magic')
 
-    FileUtils.mv bin.join('hets').to_s, bin.join('hets-bin').to_s
+    FileUtils.mv bin.join(name).to_s, bin.join("#{name}-bin").to_s
     # install hets in bin as script which sets according
     # environment variables
     # (taken and adjusted from script file in hets root dir)
-    bin.join("hets").open('w') do |f|
+    bin.join(name).open('w') do |f|
       f.write <<-BASH
 #!/bin/bash
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
-export HETS_LIB=/usr/local/opt/hets-lib
-export HETS_MAGIC=/usr/local/opt/hets/lib/hets.magic
-export HETS_OWL_TOOLS=/usr/local/opt/hets/lib/hets-owl-tools
-export HETS_APROVE=$HETS_OWL_TOOLS/AProVE.jar
-export HETS_ONTODMU=$HETS_OWL_TOOLS/OntoDMU.jar
-export PELLET_PATH=/usr/local/opt/pellet
-exec "/usr/local/opt/hets/bin/hets-bin" "$@"
+export HETS_LIB="${HETS_LIB:-#{HOMEBREW_PREFIX.join("opt", "hets-lib")}}"
+export HETS_MAGIC="${HETS_MAGIC:-#{local_lib.join("hets.magic")}}"
+export HETS_OWL_TOOLS="${HETS_OWL_TOOLS:-#{local_lib.join("hets-owl-tools")}}"
+export HETS_APROVE="${HETS_APROVE:-$HETS_OWL_TOOLS/AProVE.jar}"
+export HETS_ONTODMU="${HETS_ONTODMU:-$HETS_OWL_TOOLS/OntoDMU.jar}"
+export PELLET_PATH="${PELLET_PATH:-#{HOMEBREW_PREFIX.join("opt", "pellet", "bin")}}"
+exec "#{bin.join("#{name}-bin")}" "$@"
       BASH
     end
   end
 
   def caveats
-  end
-
-  protected
-
-  def version_suffix
-    if build.head?
-      version = nil
-      FileUtils.cd(cached_download) { version = `git log -1 --format=%ct`.to_i }
-      version
-    else
-      @@version_unix_timestamp.to_i
-    end
-  end
-
-  def inject_version_suffix
-    File.open('rev.txt', 'w') { |f| f << version_suffix }
   end
 end
