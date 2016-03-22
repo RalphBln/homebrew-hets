@@ -14,9 +14,9 @@ class Hets < Formula
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
     revision 1
-    sha256 'b54ea28c752a851156340d548a4a40c98dd4fca42cfc3200d224648991008ec7' => :mavericks
-    sha256 'b54ea28c752a851156340d548a4a40c98dd4fca42cfc3200d224648991008ec7' => :yosemite
-    sha256 'b54ea28c752a851156340d548a4a40c98dd4fca42cfc3200d224648991008ec7' => :el_capitan
+    sha256 '9e9f237c1fa05bfc1857694aad169fd74b71ab721e2eaa2f6a1fe2962167e598' => :mavericks
+    sha256 '9e9f237c1fa05bfc1857694aad169fd74b71ab721e2eaa2f6a1fe2962167e598' => :yosemite
+    sha256 '9e9f237c1fa05bfc1857694aad169fd74b71ab721e2eaa2f6a1fe2962167e598' => :el_capitan
   end
 
   depends_on 'ant' => :build
@@ -87,6 +87,7 @@ class Hets < Formula
 #!/bin/bash
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 export HETS_LIB="${HETS_LIB:-#{HOMEBREW_PREFIX.join("opt", "hets-lib")}}"
 export HETS_MAGIC="${HETS_MAGIC:-#{local_lib.join("hets.magic")}}"
 export HETS_OWL_TOOLS="${HETS_OWL_TOOLS:-#{local_lib.join("hets-owl-tools")}}"

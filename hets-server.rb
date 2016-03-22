@@ -14,9 +14,9 @@ class HetsServer < Formula
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
     revision 1
-    sha256 '6eeee4b732a148e01b7e49e4208e3abe8ecc2553d02452fafb4296408add4d2e' => :mavericks
-    sha256 '6eeee4b732a148e01b7e49e4208e3abe8ecc2553d02452fafb4296408add4d2e' => :yosemite
-    sha256 '6eeee4b732a148e01b7e49e4208e3abe8ecc2553d02452fafb4296408add4d2e' => :el_capitan
+    sha256 'b7dddae83018637e3e45c32d12184aedc9ec5dfcd0f92ea900672c88fcc81d1a' => :mavericks
+    sha256 'b7dddae83018637e3e45c32d12184aedc9ec5dfcd0f92ea900672c88fcc81d1a' => :yosemite
+    sha256 'b7dddae83018637e3e45c32d12184aedc9ec5dfcd0f92ea900672c88fcc81d1a' => :el_capitan
   end
 
   depends_on 'ant' => :build
@@ -83,6 +83,7 @@ class HetsServer < Formula
 #!/bin/bash
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 export HETS_LIB="${HETS_LIB:-#{HOMEBREW_PREFIX.join("opt", "hets-lib")}}"
 export HETS_MAGIC="${HETS_MAGIC:-#{local_lib.join("hets.magic")}}"
 export HETS_OWL_TOOLS="${HETS_OWL_TOOLS:-#{local_lib.join("hets-owl-tools")}}"
