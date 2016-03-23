@@ -8,13 +8,13 @@ real_dirname() {
 }
 base_dir=$(real_dirname $0)
 
+hets_base_version="0.99"
 dir="${base_dir}/build"
 
-repo_local_dirname="Homebrew-Hets-Git"
-repo_local_dir="${dir}/${repo_local_dirname}"
+repo_local_dirname="git-repositories"
 repo_remote_url="https://github.com/spechub/Hets.git"
 
-bottle_local_dirname="Homebrew-Hets-Bottle"
+bottle_local_dirname="bottles"
 bottle_local_dir="${dir}/${bottle_local_dirname}"
 bottle_remote_destination_host="uni"
 bottle_remote_destination_directory="/home/wwwuser/eugenk/homebrew-hets"
@@ -23,51 +23,64 @@ bottle_root_url="http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets"
 formulas=('hets-server' 'hets')
 oses=('mavericks' 'yosemite' 'el_capitan')
 
+repo_local_dir() {
+  local formula="$1"
+  echo "${dir}/${repo_local_dirname}/${formula}"
+}
+
+sync_hets_repositories() {
+  for formula in "${formulas[@]}"
+  do
+    sync_hets_repository "$formula"
+  done
+}
+
 sync_hets_repository() {
-  if [ ! -d "$repo_local_dir" ]
+  local formula="$1"
+  if [ ! -d "$(repo_local_dir "$formula")" ]
   then
-    clone_hets_repository
+    clone_hets_repository "$formula"
   else
-    pull_hets_repository
+    pull_hets_repository "$formula"
   fi
 }
 
 clone_hets_repository() {
-  if [ ! -d "$repo_local_dir" ]; then
-    local parent_dir="$parent_dir"
+  local formula="$1"
+  local repo_dir="$(repo_local_dir "$formula")"
+  local parent_dir="$(dirname "$repo_dir")"
+  if [ ! -d "$repo_dir" ]; then
     mkdir -p "$parent_dir"
     pushd "$parent_dir" > /dev/null
-      git clone "$repo_remote_url" "$repo_local_dir"
+      git clone "$repo_remote_url" "$repo_dir"
     popd > /dev/null
   fi
 }
 
 pull_hets_repository() {
-  local package_name="$1"
-  pushd "$repo_local_dir" > /dev/null
+  local formula="$1"
+  local repo_dir="$(repo_local_dir "$formula")"
+  pushd "$repo_dir" > /dev/null
     git fetch
     git reset --hard origin/master
   popd > /dev/null
 }
 
-remove_hets_repository() {
-  pushd "$(dirname "$repo_local_dir")" > /dev/null
-    rm -rf $repo_local_dirname
-  popd > /dev/null
-}
-
 version_commit() {
-  pushd $repo_local_dir > /dev/null
+  local formula="$1"
+  pushd $(repo_local_dir "$formula") > /dev/null
     echo $(git log -1 --format='%H')
   popd > /dev/null
 }
 
 version() {
-  echo "0.99-$(version_unix_timestamp)"
+  local formula="$1"
+  echo "${hets_base_version}-$(version_unix_timestamp "$formula")"
 }
 
 version_unix_timestamp() {
-  pushd $repo_local_dir > /dev/null
+  local formula="$1"
+  pushd $(repo_local_dir "$formula") > /dev/null
     echo $(git log -1 --format='%ct')
   popd > /dev/null
 }
@@ -99,7 +112,8 @@ bottle_formula() {
 bottle_formula_make() {
   local formula="$1"
 
-  pushd $repo_local_dir > /dev/null
+  pushd $(repo_local_dir "$formula") > /dev/null
+    cabal update
     if [ "$formula" = "hets" ]
     then
       cabal install --only-dependencies -f -gtkglade --force-reinstalls -p --global --prefix="${ghc_prefix}"
@@ -118,44 +132,46 @@ bottle_formula_copy_files_to_bottle_dir() {
 
   pushd $(bottle_subdir $formula) > /dev/null
     rm -rf *
-    mkdir "$(version)"
+    mkdir "$(version "$formula")"
 
-    pushd "$(version)" > /dev/null
-      echo "{\"used_options\":[],\"unused_options\":[],\"built_as_bottle\":true,\"poured_from_bottle\":false,\"time\":null,\"source_modified_time\":$(version_unix_timestamp),\"HEAD\":null,\"stdlib\":null,\"compiler\":\"ghc\",\"source\":{\"path\":\"@@HOMEBREW_PREFIX@@/Library/Formula/$formula\",\"tap\":\"spechub/hets\",\"spec\":\"stable\"}}" > INSTALL_RECEIPT.json
+    pushd "$(version "$formula")" > /dev/null
+      echo "{\"used_options\":[],\"unused_options\":[],\"built_as_bottle\":true,\"poured_from_bottle\":false,\"time\":null,\"source_modified_time\":$(version_unix_timestamp "$formula"),\"HEAD\":null,\"stdlib\":null,\"compiler\":\"ghc\",\"source\":{\"path\":\"@@HOMEBREW_PREFIX@@/Library/Formula/$formula\",\"tap\":\"spechub/hets\",\"spec\":\"stable\"}}" > INSTALL_RECEIPT.json
 
       mkdir "bin"
       pushd "bin" > /dev/null
-      echo "#!/bin/bash
+        local HOMEBREW_PREFIX="/usr/local"
+        echo "#!/bin/bash
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
-export HETS_LIB=/usr/local/opt/hets-lib
-export HETS_MAGIC=/usr/local/opt/${formula}/lib/${formula}.magic
-export HETS_OWL_TOOLS=/usr/local/opt/${formula}/lib/${formula}-owl-tools
-export HETS_APROVE=\$HETS_OWL_TOOLS/AProVE.jar
-export HETS_ONTODMU=\$HETS_OWL_TOOLS/OntoDMU.jar
-export PELLET_PATH=/usr/local/opt/pellet
-exec \"/usr/local/opt/${formula}/bin/${formula}-bin\" \"\$@\"" > $formula
-        cp "${repo_local_dir}/${formula}" "./${formula}-bin"
+export LC_ALL=en_US.UTF-8
+export HETS_LIB="\${HETS_LIB:-${HOMEBREW_PREFIX}/opt/hets-lib}"
+export HETS_MAGIC="\${HETS_MAGIC:-${HOMEBREW_PREFIX}/opt/${formula}/lib/hets.magic}"
+export HETS_OWL_TOOLS="\${HETS_OWL_TOOLS:-${HOMEBREW_PREFIX}//opt/${formula}/lib/hets-owl-tools}"
+export HETS_APROVE="\${HETS_APROVE:-\$HETS_OWL_TOOLS/AProVE.jar}"
+export HETS_ONTODMU="\${HETS_ONTODMU:-\$HETS_OWL_TOOLS/OntoDMU.jar}"
+export PELLET_PATH="\${PELLET_PATH:-${HOMEBREW_PREFIX}/opt/pellet/bin}"
+exec \"${HOMEBREW_PREFIX}/opt/${formula}/bin/${formula}-bin\" \"\$@\"" > $formula
+        cp "$(repo_local_dir "$formula")/${formula}" "./${formula}-bin"
         chmod +x $formula
         chmod +x "${formula}-bin"
       popd > /dev/null
 
       mkdir "lib"
       pushd "lib" > /dev/null
-        cp "${repo_local_dir}/magic/hets.magic" "./${formula}.magic"
+        cp "$(repo_local_dir "$formula")/magic/hets.magic" "./${formula}.magic"
 
         mkdir "${formula}-owl-tools"
         pushd "${formula}-owl-tools" > /dev/null
-          cp "${repo_local_dir}/OWL2/OWL2Parser.jar" .
-          cp "${repo_local_dir}/OWL2/OWLLocality.jar" .
-          cp "${repo_local_dir}/DMU/OntoDMU.jar" .
-          cp "${repo_local_dir}/CASL/Termination/AProVE.jar" .
+          cp "$(repo_local_dir "$formula")/OWL2/OWL2Parser.jar" .
+          cp "$(repo_local_dir "$formula")/OWL2/OWLLocality.jar" .
+          cp "$(repo_local_dir "$formula")/DMU/OntoDMU.jar" .
+          cp "$(repo_local_dir "$formula")/CASL/Termination/AProVE.jar" .
 
           mkdir "lib"
           pushd "lib" > /dev/null
-            cp "${repo_local_dir}/OWL2/lib/owlapi-osgidistribution-3.5.2.jar" .
-            cp "${repo_local_dir}/OWL2/lib/guava-18.0.jar" .
-            cp "${repo_local_dir}/OWL2/lib/trove4j-3.0.3.jar" .
+            cp "$(repo_local_dir "$formula")/OWL2/lib/owlapi-osgidistribution-3.5.2.jar" .
+            cp "$(repo_local_dir "$formula")/OWL2/lib/guava-18.0.jar" .
+            cp "$(repo_local_dir "$formula")/OWL2/lib/trove4j-3.0.3.jar" .
           popd > /dev/null
         popd > /dev/null
       popd > /dev/null
@@ -165,7 +181,7 @@ exec \"/usr/local/opt/${formula}/bin/${formula}-bin\" \"\$@\"" > $formula
 
 bottle_base_tarball() {
   local formula="$1"
-  echo "${formula}-0.99-$(version_unix_timestamp).tar.gz"
+  echo "${formula}-0.99-$(version_unix_timestamp "$formula").tar.gz"
 }
 
 bottle_base_tarball_absolute() {
@@ -177,7 +193,7 @@ bottle_tarball() {
   local formula="$1"
   local os="$2"
   local release="${3:-1}"
-  echo "${formula}-$(version).${os}.bottle.${release}.tar.gz"
+  echo "${formula}-$(version "$formula").${os}.bottle.${release}.tar.gz"
 }
 
 bottle_formula_create_tarball() {
@@ -227,16 +243,17 @@ update_formula() {
   fi
 
   pushd $base_dir > /dev/null
-    $sed -i "s/@@version_commit = '.*/@@version_commit = '$(version_commit)'/g" $formula_file
-    $sed -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$(version_unix_timestamp)'/g" $formula_file
+    $sed -i "s/@@version_commit = '.*/@@version_commit = '$(version_commit "$formula")'/g" $formula_file
+    $sed -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$(version_unix_timestamp "$formula")'/g" $formula_file
     $sed -i "s/sha256 '[^']*'/sha256 '$(bottle_shasum $formula)'/g" $formula_file
     git add $formula_file
   popd > /dev/null
 }
 
 commit_formula_changes() {
+  local formula="$formulas[1]"
   pushd $base_dir > /dev/null
-    git commit -m "Update hets formulas to $(version_unix_timestamp)"
+    git commit -m "Update hets formulas to $(version_unix_timestamp "$formula")"
   popd > /dev/null
 }
 

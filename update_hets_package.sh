@@ -10,7 +10,7 @@ base_dir=$(real_dirname $0)
 
 source "$base_dir/functions.sh"
 
-sync_hets_repository
+sync_hets_repositories
 bottle_all_formulas
 update_all_formulas
 commit_formula_changes
