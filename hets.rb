@@ -4,8 +4,8 @@ require 'rexml/document'
 class Hets < Formula
   # Both the version and the sha1 need to be adjusted when a new
   # dmg-version of hets is released.
-  @@version_commit = '6b19c8272f0789c62480f911d306c1b4d81a539a'
-  @@version_unix_timestamp = '1458196355'
+  @@version_commit = '11fcbd408f5ca8b36b2fe2e8233c07994abfef17'
+  @@version_unix_timestamp = '1459085303'
   homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
@@ -13,10 +13,10 @@ class Hets < Formula
 
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
-    revision 2
-    sha256 '69f7e170cf8fe3cc549c5e99b1c6e2e118856f8bdc9f6bae10ee0c4de5be470f' => :mavericks
-    sha256 '69f7e170cf8fe3cc549c5e99b1c6e2e118856f8bdc9f6bae10ee0c4de5be470f' => :yosemite
-    sha256 '69f7e170cf8fe3cc549c5e99b1c6e2e118856f8bdc9f6bae10ee0c4de5be470f' => :el_capitan
+    revision 1
+    sha256 '0415468133d2b8a4c4b5f169c9fc4e7d20d2e026ad7bb3b98d4f8dc13102f5c5' => :mavericks
+    sha256 '0415468133d2b8a4c4b5f169c9fc4e7d20d2e026ad7bb3b98d4f8dc13102f5c5' => :yosemite
+    sha256 '0415468133d2b8a4c4b5f169c9fc4e7d20d2e026ad7bb3b98d4f8dc13102f5c5' => :el_capitan
   end
 
   depends_on 'ant' => :build
@@ -78,7 +78,8 @@ class Hets < Formula
 
     local_lib.install('magic/hets.magic')
 
-    FileUtils.mv bin.join(name).to_s, bin.join("#{name}-bin").to_s
+    compiled_executable = bin.join("#{name}-bin").to_s
+    FileUtils.mv bin.join(name).to_s, compiled_executable
     # install hets in bin as script which sets according
     # environment variables
     # (taken and adjusted from script file in hets root dir)
@@ -94,7 +95,7 @@ export HETS_OWL_TOOLS="${HETS_OWL_TOOLS:-#{local_lib.join("hets-owl-tools")}}"
 export HETS_APROVE="${HETS_APROVE:-$HETS_OWL_TOOLS/AProVE.jar}"
 export HETS_ONTODMU="${HETS_ONTODMU:-$HETS_OWL_TOOLS/OntoDMU.jar}"
 export PELLET_PATH="${PELLET_PATH:-#{HOMEBREW_PREFIX.join("opt", "pellet", "bin")}}"
-exec "#{bin.join("#{name}-bin")}" "$@"
+exec "#{compiled_executable}")}" "$@"
       BASH
     end
   end

@@ -4,8 +4,8 @@ require 'rexml/document'
 class HetsServer < Formula
   # Both the version and the sha1 need to be adjusted when a new
   # dmg-version of hets is released.
-  @@version_commit = '6b19c8272f0789c62480f911d306c1b4d81a539a'
-  @@version_unix_timestamp = '1458196355'
+  @@version_commit = '11fcbd408f5ca8b36b2fe2e8233c07994abfef17'
+  @@version_unix_timestamp = '1459085303'
   homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
@@ -13,10 +13,10 @@ class HetsServer < Formula
 
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
-    revision 2
-    sha256 '273de3b7fe44e1d0e192cfe4574958e80ec469930706cf3c2c76a23675c37a0a' => :mavericks
-    sha256 '273de3b7fe44e1d0e192cfe4574958e80ec469930706cf3c2c76a23675c37a0a' => :yosemite
-    sha256 '273de3b7fe44e1d0e192cfe4574958e80ec469930706cf3c2c76a23675c37a0a' => :el_capitan
+    revision 1
+    sha256 '8974dee10c314bc28adc674d0a6fe26fb690d4546a2342620aeb487d071bb18b' => :mavericks
+    sha256 '8974dee10c314bc28adc674d0a6fe26fb690d4546a2342620aeb487d071bb18b' => :yosemite
+    sha256 '8974dee10c314bc28adc674d0a6fe26fb690d4546a2342620aeb487d071bb18b' => :el_capitan
   end
 
   depends_on 'ant' => :build
@@ -74,7 +74,8 @@ class HetsServer < Formula
 
     local_lib.install('magic/hets.magic')
 
-    FileUtils.mv bin.join(name).to_s, bin.join("#{name}-bin").to_s
+    compiled_executable = bin.join("#{name}-bin").to_s
+    FileUtils.mv bin.join(name).to_s, compiled_executable
     # install hets in bin as script which sets according
     # environment variables
     # (taken and adjusted from script file in hets root dir)
@@ -90,7 +91,7 @@ export HETS_OWL_TOOLS="${HETS_OWL_TOOLS:-#{local_lib.join("hets-owl-tools")}}"
 export HETS_APROVE="${HETS_APROVE:-$HETS_OWL_TOOLS/AProVE.jar}"
 export HETS_ONTODMU="${HETS_ONTODMU:-$HETS_OWL_TOOLS/OntoDMU.jar}"
 export PELLET_PATH="${PELLET_PATH:-#{HOMEBREW_PREFIX.join("opt", "pellet", "bin")}}"
-exec "#{bin.join("#{name}-bin")}" "$@"
+exec "#{compiled_executable}")}" "$@"
       BASH
     end
   end
