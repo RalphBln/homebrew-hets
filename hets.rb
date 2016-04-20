@@ -96,6 +96,7 @@ export HETS_MAGIC="${HETS_MAGIC:-#{local_lib.join("hets.magic")}}"
 export HETS_OWL_TOOLS="${HETS_OWL_TOOLS:-#{local_lib.join("hets-owl-tools")}}"
 export HETS_APROVE="${HETS_APROVE:-$HETS_OWL_TOOLS/AProVE.jar}"
 export HETS_ONTODMU="${HETS_ONTODMU:-$HETS_OWL_TOOLS/OntoDMU.jar}"
+export HETS_JNI_LIBS="${HETS_JNI_LIBS:-#{HOMEBREW_PREFIX.join("opt", "factplusplus")}}"
 export PELLET_PATH="${PELLET_PATH:-#{HOMEBREW_PREFIX.join("opt", "pellet", "bin")}}"
 exec "#{compiled_executable}")}" "$@"
       BASH
