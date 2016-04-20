@@ -14,9 +14,9 @@ class Hets < Formula
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
     revision 1
-    sha256 '90163be44f1513ddff7f70954435d5071c3ab0d9cf3df14f693f123cb1e029ac' => :mavericks
-    sha256 '90163be44f1513ddff7f70954435d5071c3ab0d9cf3df14f693f123cb1e029ac' => :yosemite
-    sha256 '90163be44f1513ddff7f70954435d5071c3ab0d9cf3df14f693f123cb1e029ac' => :el_capitan
+    sha256 'eb60fc2142c6649422979b3191f3799ff75435eea26d3a94390e71ed13c5476a' => :mavericks
+    sha256 'eb60fc2142c6649422979b3191f3799ff75435eea26d3a94390e71ed13c5476a' => :yosemite
+    sha256 'eb60fc2142c6649422979b3191f3799ff75435eea26d3a94390e71ed13c5476a' => :el_capitan
   end
 
   depends_on 'ant' => :build
