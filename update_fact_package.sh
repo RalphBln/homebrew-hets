@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 real_dirname() {
   pushd $(dirname $1) > /dev/null
@@ -10,8 +10,10 @@ base_dir=$(real_dirname $0)
 
 source "$base_dir/functions.sh"
 
-sync_hets_repositories
+# overwrite formulas array - only these are going to be updated.
+formulas=('factplusplus')
+
+sync_formula_repositories
 bottle_all_formulas
 update_all_formulas
-commit_formula_changes
 push_formula_changes
