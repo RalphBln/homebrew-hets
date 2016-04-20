@@ -14,9 +14,9 @@ class HetsServer < Formula
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
     revision 1
-    sha256 '8974dee10c314bc28adc674d0a6fe26fb690d4546a2342620aeb487d071bb18b' => :mavericks
-    sha256 '8974dee10c314bc28adc674d0a6fe26fb690d4546a2342620aeb487d071bb18b' => :yosemite
-    sha256 '8974dee10c314bc28adc674d0a6fe26fb690d4546a2342620aeb487d071bb18b' => :el_capitan
+    sha256 '4bd0167fcae8152a6561abca80480349225265ae5025e0ba4592c715140faa4d' => :mavericks
+    sha256 '4bd0167fcae8152a6561abca80480349225265ae5025e0ba4592c715140faa4d' => :yosemite
+    sha256 '4bd0167fcae8152a6561abca80480349225265ae5025e0ba4592c715140faa4d' => :el_capitan
   end
 
   depends_on 'ant' => :build
@@ -32,6 +32,7 @@ class HetsServer < Formula
 
   depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
+  depends_on 'factplusplus' => :recommended
   depends_on 'owltools' => :recommended
   depends_on 'pellet' => :recommended
   depends_on 'spass' => :recommended
