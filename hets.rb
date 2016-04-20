@@ -65,6 +65,8 @@ class Hets < Formula
     owl_tools.mkpath
 
     owl_tools.install('OWL2/OWL2Parser.jar')
+    owl_tools.install('OWL2/OWLFact.jar')
+    owl_tools.install('OWL2/OWLFactProver.jar')
     owl_tools.install('OWL2/OWLLocality.jar')
     owl_tools.install('DMU/OntoDMU.jar')
     owl_tools.install('CASL/Termination/AProVE.jar')
