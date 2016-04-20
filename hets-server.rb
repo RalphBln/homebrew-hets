@@ -56,7 +56,7 @@ class HetsServer < Formula
 
     bin.install(name)
 
-    owl_tools = local_lib.join("#{name}-owl-tools")
+    owl_tools = local_lib.join("hets-owl-tools")
 
     owl_tools.mkpath
 
