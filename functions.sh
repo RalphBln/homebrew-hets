@@ -214,8 +214,8 @@ exec \"${HOMEBREW_PREFIX}/opt/${formula}/bin/${formula}-bin\" \"\$@\"" > $formul
   pushd "lib" > /dev/null
     cp "$(repo_local_dir "$formula")/magic/hets.magic" "./${formula}.magic"
 
-    mkdir "${formula}-owl-tools"
-    pushd "${formula}-owl-tools" > /dev/null
+    mkdir "hets-owl-tools"
+    pushd "hets-owl-tools" > /dev/null
       cp "$(repo_local_dir "$formula")/OWL2/OWL2Parser.jar" .
       cp "$(repo_local_dir "$formula")/OWL2/OWLLocality.jar" .
       cp "$(repo_local_dir "$formula")/DMU/OntoDMU.jar" .
