@@ -1,7 +1,7 @@
 require "formula"
 require 'rexml/document'
 
-class HetsServer < Formula
+class HetsDesktop < Formula
   @@version_commit = '9c020bf240dace07c6defccb1c8a42328ec454e0'
   @@version_no = '0.99'
   @@version_unix_timestamp = '1471209385'
@@ -15,7 +15,15 @@ class HetsServer < Formula
   depends_on 'glib' => :build
   depends_on 'binutils' => :build
 
+  depends_on 'cairo' => :build
+  depends_on 'fontconfig' => :build
+  depends_on 'freetype' => :build
+  depends_on 'gettext' => :build
+  depends_on 'gtk' => :build
+
+  depends_on :x11
   depends_on 'hets-commons'
+  depends_on 'udrawgraph'
 
   depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
@@ -25,10 +33,10 @@ class HetsServer < Formula
   depends_on 'spass' => :recommended
 
   def install
-    make_compile_target = 'hets_server.bin'
-    make_install_target = 'install-hets_server'
-    executable = 'hets-server'
-    binary = "hets_server.bin"
+    make_compile_target = 'hets.bin'
+    make_install_target = 'install-hets'
+    executable = 'hets'
+    binary = "hets.bin"
 
     install_dependencies
 
@@ -50,8 +58,20 @@ class HetsServer < Formula
     puts 'Installing dependencies...'
     ghc_prefix = `ghc --print-libdir | sed -e 's+/lib.*/.*++g'`.strip
     opts = ['-p', '--global', "--prefix=#{ghc_prefix}"]
-    flags = %w(-f server -f -gtkglade -f -uniform)
+    flags = %w()
+
     system('cabal', 'update')
+
+    # GTK needs special treatment on macOS: The order of installation steps is
+    # very important, as is the environment (pkg-config needs to be found).
+    # See also http://stackoverflow.com/a/38919482/2068056
+    ENV['PATH'] = "/usr/local/bin/:#{ENV['PATH']}"
+    ENV['PKG_CONFIG_PATH'] = "/usr/local/lib/pkgconfig:"
+    system('cabal', 'install', 'alex', 'happy', *opts)
+    system('cabal', 'install', 'gtk2hs-buildtools', *opts)
+    system('cabal', 'install', 'glib', *opts)
+    system('cabal', 'install', 'gtk', '-f', 'have-quartz-gtk', *opts)
+
     system('cabal', 'install', '--only-dependencies', *flags, *opts)
   end
 
