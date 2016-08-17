@@ -9,6 +9,15 @@ class HetsCommons < Formula
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "#{@@version_no}-#{@@version_unix_timestamp}"
+  revision 1
+
+  bottle do
+    root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
+    revision 1
+    sha256 '360418bdad711c06cb617cf7f18a82d5dcf7459f79af5099134030ce1d138d3e' => :mavericks
+    sha256 '360418bdad711c06cb617cf7f18a82d5dcf7459f79af5099134030ce1d138d3e' => :yosemite
+    sha256 '360418bdad711c06cb617cf7f18a82d5dcf7459f79af5099134030ce1d138d3e' => :el_capitan
+  end
 
   depends_on :java => :build
   depends_on 'ant' => :build

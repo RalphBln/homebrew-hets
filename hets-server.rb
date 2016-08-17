@@ -9,6 +9,15 @@ class HetsServer < Formula
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "#{@@version_no}-#{@@version_unix_timestamp}"
+  revision 1
+
+  bottle do
+    root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
+    revision 1
+    sha256 '1cfc6b8257a30fad97df9519bf0b2c93eb1c0207c162c7759634b8eb19476f74' => :mavericks
+    sha256 '1cfc6b8257a30fad97df9519bf0b2c93eb1c0207c162c7759634b8eb19476f74' => :yosemite
+    sha256 '1cfc6b8257a30fad97df9519bf0b2c93eb1c0207c162c7759634b8eb19476f74' => :el_capitan
+  end
 
   depends_on 'cabal-install' => :build
   depends_on 'ghc' => :build
@@ -61,24 +70,24 @@ class HetsServer < Formula
   # It also needs to use the hets-commons package which is located in a
   # different directory.
   def patch_wrapper_script(prog)
-    environment = <<-ENV
+		wrapper_script_header = <<-WRAPPER_SCRIPT_HEADER
+#!/bin/bash
+
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
-[[ -z ${HETS_JNI_LIBS} ]] && \\
-		        HETS_JNI_LIBS="#{HOMEBREW_PREFIX.join('opt', 'factplusplus')}"
-ENV
-
-    dirs = <<-DIRS
 COMMONSDIR="#{HOMEBREW_PREFIX.join('opt', 'hets-commons')}"
 PROGDIR="#{prefix}"
-DIRS
+PROG="#{prog}"
 
-    inreplace(bin.join(prog), '#!/bin/ksh93', '#!/bin/bash')
+[[ -z ${HETS_JNI_LIBS} ]] && \\
+		        HETS_JNI_LIBS="#{HOMEBREW_PREFIX.join('opt', 'factplusplus')}"
+WRAPPER_SCRIPT_HEADER
+
+		# Replace the header until (including) the line starting with PROG=
+		inreplace(bin.join(prog), /\A.*PROG=[^\n]*$/m, wrapper_script_header)
     inreplace(bin.join(prog), 'BASEDIR', 'COMMONSDIR')
-    inreplace(bin.join(prog), /^\s*COMMONSDIR=.*$/, dirs)
-    inreplace(bin.join(prog), /^\s*PROG=.*$/, "PROG=#{prog}\n\n#{environment}")
     inreplace(bin.join(prog), /^\s*exec\s+(["']).*COMMONSDIR[^\/]*/, 'exec \1${PROGDIR}')
   end
 end
