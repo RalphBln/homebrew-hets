@@ -5,7 +5,7 @@ class Darwin < Formula
   homepage 'http://combination.cs.uiowa.edu/Darwin/'
   url "http://combination.cs.uiowa.edu/Darwin/files/darwin_v#{the_version}.tar.gz"
   version "#{the_version}"
-  sha1 '25edfc2ffb8af176387c6d8046ed447e4ae5a6b7'
+  sha256 '43dcb724e170db3fabd73f30aeb86ac6b92117a2457f3a8d3324309e3b8f6200'
 
   depends_on 'ocaml'
   depends_on 'python'
