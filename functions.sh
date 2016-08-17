@@ -84,14 +84,17 @@ fi
 # ------------ #
 
 install_hets_dependencies() {
-  eval "declare -A package_info="${1#*=}
-  cabal update
-  export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:
-  cabal install alex happy $cabal_options
-  cabal install gtk2hs-buildtools $cabal_options
-  cabal install glib $cabal_options
-  cabal install gtk -f have-quartz-gtk $cabal_options
-  cabal install --only-dependencies "${elment[cabal_flags]}" $cabal_options
+  if [ -z "$(ghc-pkg list | grep " gtk-")" ]
+  then
+    eval "declare -A package_info="${1#*=}
+    cabal update
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:
+    cabal install alex happy $cabal_options
+    cabal install gtk2hs-buildtools $cabal_options
+    cabal install glib $cabal_options
+    cabal install gtk -f have-quartz-gtk $cabal_options
+    cabal install --only-dependencies "${package_info[cabal_flags]}" $cabal_options
+  fi
 }
 
 compile_package() {
