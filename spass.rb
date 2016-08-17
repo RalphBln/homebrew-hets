@@ -3,15 +3,13 @@ require 'formula'
 class Spass < Formula
 
   homepage 'http://www.spass-prover.org/index.html'
-  url 'http://www.spass-prover.org/download/sources/spass37.tgz'
-  version '3.7'
-  sha1 '68b1e570381b1bedafb5c682f4dee7ed3a6c6874'
+  url 'http://www.spass-prover.org/download/sources/spass39.tgz'
+  version '3.9'
+  sha256 '1797c3fbd1954189c812fbab7927880bad964ded400bae733a9938c7e6b09e85'
 
   def install
-    system('./configure')
     system('make')
-
-    bin.install('SPASS/SPASS')
+    bin.install('SPASS')
   end
 
   def caveats
