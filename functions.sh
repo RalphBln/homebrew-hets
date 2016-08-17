@@ -8,328 +8,393 @@ real_dirname() {
 }
 base_dir=$(real_dirname $0)
 
-hets_base_version="0.99"
-dir="${base_dir}/build"
+# Where the bottles are uploaded to
+remote_homebrew_bottle_host="uni"
+remote_homebrew_bottle_dir="/home/wwwuser/eugenk/homebrew-hets"
+remote_homebrew_bottle_root_url="http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets"
 
-repo_local_dirname="git-repositories"
+# This file makes heavy use of passing associative arrays to functions.
+#
+# Usage in caller:
+# my_function "$(declare -p my_associative_array)"
+#
+# Usage in function:
+# eval "declare -A my_local_associative_array="${1#*=}
+#
+# See http://stackoverflow.com/a/8879444/2068056
 
-bottle_local_dirname="bottles"
-bottle_local_dir="${dir}/${bottle_local_dirname}"
-bottle_remote_destination_host="uni"
-bottle_remote_destination_directory="/home/wwwuser/eugenk/homebrew-hets"
-bottle_root_url="http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets"
+# Declare associative arrays
+declare -A hets_commons hets_desktop hets_server
 
-oses=('mavericks' 'yosemite' 'el_capitan')
+hets_commons[package_name]="hets-commons"
+hets_commons[upstream_repository]="https://github.com/spechub/Hets.git"
+hets_commons[ref]="${REF_HETS_COMMONS:-master}"
+hets_commons[revision]="${REVISION_HETS_COMMONS:-1}"
+hets_commons[make_install_target]="install-common"
 
-formulas=('hets-server' 'hets' 'factplusplus')
-hets_formulas=('hets-server' 'hets')
+hets_desktop[package_name]="hets-desktop"
+hets_desktop[upstream_repository]="https://github.com/spechub/Hets.git"
+hets_desktop[ref]="${REF_HETS_DESKTOP:-master}"
+hets_desktop[revision]="${REVISION_HETS_DESKTOP:-1}"
+hets_desktop[make_compile_target]="hets.bin"
+hets_desktop[make_install_target]="install-hets"
+hets_desktop[executable]="hets"
+hets_desktop[binary]="hets.bin"
+hets_desktop[cabal_flags]=""
 
-declare -A repo_remote_urls
-repo_remote_urls[hets-server]='https://github.com/spechub/Hets.git'
-repo_remote_urls[hets]='https://github.com/spechub/Hets.git'
-repo_remote_urls[factplusplus]='https://bitbucket.org/dtsarkov/factplusplus.git'
+hets_server[package_name]="hets-server"
+hets_server[upstream_repository]="https://github.com/spechub/Hets.git"
+hets_server[ref]="${REF_HETS_SERVER-master}"
+hets_server[revision]="${REVISION_HETS_SERVER:-1}"
+hets_server[make_compile_target]="hets_server.bin"
+hets_server[make_install_target]="install-hets_server"
+hets_server[executable]="hets-server"
+hets_server[binary]="hets_server.bin"
+hets_server[cabal_flags]="-f server -f -gtkglade -f -uniform"
 
-declare -A refs
-refs[hets-server]='origin/master'
-refs[hets]='origin/master'
-refs[factplusplus]="${FACT_REF-'origin/master'}"
+OSes=('mavericks' 'yosemite' 'el_capitan')
 
-declare -A versions
-versions[hets-server]=false
-versions[hets]=false
-versions[factplusplus]="${FACT_VERSION:-1.6.4}"
+ghc_prefix=`ghc --print-libdir | sed -e 's+/lib.*/.*++g'`
+cabal_options="-p --global --prefix=$ghc_prefix"
 
-declare -A use_cabal
-use_cabal[hets-server]=true
-use_cabal[hets]=true
-use_cabal[factplusplus]=false
+local_repository_dir="$base_dir/build/git-repositories"
+local_bottle_dir="$base_dir/build/bottles"
 
-declare -A cabal_additional_flags
-cabal_additional_flags[hets-server]='-f server -f -gtkglade -f -uniform'
-cabal_additional_flags[hets]='-f -gtkglade'
-cabal_additional_flags[factplusplus]=''
 
-declare -A make_targets
-make_targets[hets-server]='hets-server initialize_java'
-make_targets[hets]='hets initialize_java'
-make_targets[factplusplus]=''
+# ----- #
+# Tools #
+# ----- #
 
-repo_local_dir() {
-  local formula="$1"
-  echo "${dir}/${repo_local_dirname}/${formula}"
+# Always use GNU sed
+if hash gsed 2> /dev/null
+then
+	SED=gsed
+else
+	SED=sed
+fi
+
+
+# ------------ #
+# Build System #
+# ------------ #
+
+install_hets_dependencies() {
+  eval "declare -A package_info="${1#*=}
+  cabal update
+  export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:
+  cabal install alex happy $cabal_options
+  cabal install gtk2hs-buildtools $cabal_options
+  cabal install glib $cabal_options
+  cabal install gtk -f have-quartz-gtk $cabal_options
+  cabal install --only-dependencies "${elment[cabal_flags]}" $cabal_options
 }
 
-sync_formula_repositories() {
-  for formula in "${formulas[@]}"
-  do
-    sync_formula_repository "$formula"
-  done
+compile_package() {
+  eval "declare -A package_info="${1#*=}
+
+	if [[ -n "${package_info[make_compile_target]}" ]]
+	then
+    make ${package_info[make_compile_target]}
+    strip ${package_info[binary]}
+	fi
 }
 
-sync_formula_repository() {
-  local formula="$1"
-  if [ ! -d "$(repo_local_dir "$formula")" ]
+install_package_to_prefix() {
+  eval "declare -A package_info="${1#*=}
+	local bottle_dir=$(versioned_bottle_dir "$(declare -p package_info)")
+
+  mkdir -p "$local_bottle_dir/$bottle_dir"
+  rm -rf "$local_bottle_dir/$bottle_dir/*"
+  rm -rf "$local_bottle_dir/$bottle_dir/.*"
+	make ${package_info[make_install_target]} PREFIX=$local_bottle_dir/$bottle_dir
+}
+
+post_process_installation() {
+  eval "declare -A package_info="${1#*=}
+	local bottle_dir=$(versioned_bottle_dir "$(declare -p package_info)")
+
+  case "${package_info[package_name]}" in
+    "hets-commons")
+      local brew_prefix="$(brew --prefix)"
+      pushd "$local_bottle_dir/$bottle_dir" > /dev/null
+        ln -sf "$brew_prefix/opt/hets-lib" "lib/hets/hets-lib"
+        ln -sf "$brew_prefix/opt/pellet/bin" "share/pellet"
+      popd > /dev/null
+			;;
+    "hets-desktop"|"hets-server")
+			post_process_hets "$(declare -p package_info)" "$bottle_dir"
+			;;
+  esac
+  write_install_receipt "$(declare -p package_info)" "$bottle_dir"
+}
+
+# The wrapper script needs to use a shell that is certainly installed.
+# It needs to point to the correct executable.
+# Hets needs to have additional locale settings.
+# It also needs to use the hets-commons package which is located in a
+# different directory.
+post_process_hets() {
+  eval "declare -A package_info="${1#*=}
+  local bottle_dir="$2"
+  local version_dir="$(basename "$bottle_dir")"
+	local wrapper_script="bin/${package_info[executable]}"
+  local brew_cellar="$(brew --cellar)"
+
+  pushd "$local_bottle_dir/$bottle_dir" > /dev/null
+    rm -f "share/man/man1/hets.1e"
+    rm -f "share/man/man1/hets.1-e"
+
+		read -r -d '' wrapper_script_header <<WRAPPER_SCRIPT_HEADER
+#!/bin/bash
+
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+brew_prefix="\$(brew --prefix)"
+
+COMMONSDIR="\$brew_prefix/opt/hets-commons"
+PROGDIR="$brew_cellar/${package_info[package_name]}/$version_dir"
+PROG="${package_info[executable]}"
+
+[[ -z \${HETS_JNI_LIBS} ]] && \\
+            HETS_JNI_LIBS="\$brew_prefix/opt/factplusplus"
+WRAPPER_SCRIPT_HEADER
+
+    # replace the script header with the above one
+		$SED -ie "/\/bin\/ksh93/,/PROG=/ d" "$wrapper_script"
+    echo "$wrapper_script_header" > "$wrapper_script.tmp"
+		cat "$wrapper_script" >> "$wrapper_script.tmp"
+		mv -f "$wrapper_script.tmp" "$wrapper_script"
+    chmod 555 "$wrapper_script"
+    rm -f "${wrapper_script}e"
+    rm -f "${wrapper_script}-e"
+
+    # search and replace
+		$SED -i "s/BASEDIR/COMMONSDIR/g" "$wrapper_script"
+		$SED -i "s/^\s*exec\s*\"\${COMMONSDIR/exec \"\${PROGDIR/g" "$wrapper_script"
+		$SED -i "s/^\s*exec\s*'\${COMMONSDIR/exec '\${PROGDIR/g" "$wrapper_script"
+  popd > /dev/null
+}
+
+write_install_receipt() {
+  eval "declare -A package_info="${1#*=}
+  local bottle_dir="$2"
+
+  pushd "$local_bottle_dir/$bottle_dir" > /dev/null
+    echo "{\"used_options\":[],\"unused_options\":[],\"built_as_bottle\":true,\"poured_from_bottle\":false,\"time\":null,\"source_modified_time\":$(hets_version_unix_timestamp "$(declare -p package_info)"),\"HEAD\":null,\"stdlib\":null,\"compiler\":\"ghc\",\"source\":{\"path\":\"@@HOMEBREW_PREFIX@@/Library/Formula/${package_info[package_name]}\",\"tap\":\"spechub/hets\",\"spec\":\"stable\"}}" > INSTALL_RECEIPT.json
+  popd > /dev/null
+}
+
+# ---------------------- #
+# Version Control System #
+# ---------------------- #
+
+sync_upstream_repository() {
+  eval "declare -A package_info="${1#*=}
+  if [ ! -d "$local_repository_dir/${package_info[package_name]}" ]
   then
-    clone_formula_repository "$formula"
+    clone_upstream_repository "$(declare -p package_info)"
   else
-    pull_formula_repository "$formula"
+    pull_upstream_repository "$(declare -p package_info)"
   fi
-  checkout_ref "$formula"
+  checkout_ref "$(declare -p package_info)"
 }
 
-clone_formula_repository() {
-  local formula="$1"
-  local repo_dir="$(repo_local_dir "$formula")"
-  local parent_dir="$(dirname "$repo_dir")"
+clone_upstream_repository() {
+  eval "declare -A package_info="${1#*=}
+  local repo_dir="$local_repository_dir/${package_info[package_name]}"
   if [ ! -d "$repo_dir" ]; then
-    mkdir -p "$parent_dir"
-    pushd "$parent_dir" > /dev/null
-      git clone "${repo_remote_urls[$formula]}" "$repo_dir"
+    mkdir -p "$local_repository_dir"
+    pushd "$local_repository_dir" > /dev/null
+      git clone "${package_info[upstream_repository]}" "$repo_dir"
     popd > /dev/null
   fi
 }
 
-pull_formula_repository() {
-  local formula="$1"
-  local repo_dir="$(repo_local_dir "$formula")"
+pull_upstream_repository() {
+  eval "declare -A package_info="${1#*=}
+  local repo_dir="$local_repository_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
     git fetch
   popd > /dev/null
 }
 
 checkout_ref() {
-  local formula="$1"
-  local repo_dir="$(repo_local_dir "$formula")"
-  local ref="${refs[$formula]}"
+  eval "declare -A package_info="${1#*=}
+  local repo_dir="$local_repository_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
-    git reset --hard $ref
+    git reset --hard ${package_info[ref]}
   popd > /dev/null
 }
 
-version_commit() {
-  local formula="$1"
-  pushd $(repo_local_dir "$formula") > /dev/null
+
+# --------------- #
+# Version Numbers #
+# --------------- #
+
+hets_version_commit_oid() {
+  eval "declare -A package_info="${1#*=}
+  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  pushd "$repo_dir" > /dev/null
     echo $(git log -1 --format='%H')
   popd > /dev/null
 }
 
-version() {
-  local formula="$1"
-  if (array_contains hets_formulas $formula)
-  then
-    echo "${hets_base_version}-$(version_unix_timestamp "$formula")"
-  else
-    echo ${versions[$formula]}
-  fi
-}
-
-version_unix_timestamp() {
-  local formula="$1"
-  pushd $(repo_local_dir "$formula") > /dev/null
-    echo $(git log -1 --format='%ct')
+# execute AFTER compiling
+hets_version_no() {
+  eval "declare -A package_info="${1#*=}
+  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  pushd "$repo_dir" > /dev/null
+    cat version_nr
   popd > /dev/null
 }
 
-bottle_subdir() {
-  local formula="$1"
-  echo "${bottle_local_dir}/${formula}"
+# execute AFTER compiling
+hets_version_unix_timestamp() {
+  eval "declare -A package_info="${1#*=}
+  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  pushd "$repo_dir" > /dev/null
+		echo $(git log -1 --format='%ct')
+  popd > /dev/null
 }
 
-bottle_all_formulas() {
-  for formula in "${formulas[@]}"
-  do
-    bottle_formula $formula
-  done
+hets_version() {
+  eval "declare -A package_info="${1#*=}
+  local version="$(hets_version_no "$(declare -p package_info)")"
+  local timestamp="$(hets_version_unix_timestamp "$(declare -p package_info)")"
+	echo "${version}-${timestamp}"
+}
+
+
+# -------- #
+# Bottling #
+# -------- #
+
+bottle_subdir() {
+  eval "declare -A package_info="${1#*=}
+  echo "${local_bottle_dir}/${package_info[package_name]}"
+}
+
+versioned_bottle_dir() {
+  eval "declare -A package_info="${1#*=}
+  local version="$(hets_version "$(declare -p package_info)")"
+  local revision="${package_info[revision]}"
+	echo "${package_info[package_name]}/${version}_$revision"
 }
 
 bottle_formula() {
-  local formula="$1"
-  local formula_file="${formula}.rb"
+  eval "declare -A package_info="${1#*=}
+  local repo_dir="$local_repository_dir/${package_info[package_name]}"
 
-  bottle_formula_make $formula
-  bottle_formula_copy_files_to_bottle_dir $formula
-  bottle_formula_create_tarball $formula
-  bottle_formula_upload_tarball $formula
-}
-
-bottle_formula_make() {
-  local formula="$1"
-
-  pushd $(repo_local_dir "$formula") > /dev/null
-    if (${use_cabal[$formula]})
-    then
-      local ghc_prefix=`ghc --print-libdir | sed -e 's+/lib.*/.*++g'`
-      cabal update
-      cabal install --only-dependencies ${cabal_additional_flags[$formula]} --force-reinstalls -p --global --prefix="${ghc_prefix}"
-    fi
-    make ${make_targets[$formula]}
+  pushd "$repo_dir" > /dev/null
+    case "${package_info[package_name]}" in
+      "hets-desktop"|"hets-server")
+        install_hets_dependencies "$(declare -p package_info)"
+        ;;
+      *)
+        ;;
+    esac
+		compile_package "$(declare -p package_info)"
+		install_package_to_prefix "$(declare -p package_info)"
+		post_process_installation "$(declare -p package_info)"
+    create_tarball "$(declare -p package_info)"
+    upload_tarball "$(declare -p package_info)"
   popd > /dev/null
 }
 
-bottle_formula_copy_files_to_bottle_dir() {
-  local formula="$1"
-  local HOMEBREW_PREFIX="/usr/local"
+tarball_name() {
+  eval "declare -A package_info="${1#*=}
+  local version="$(hets_version "$(declare -p package_info)")"
+  local revision="${package_info[revision]}"
+  echo "${package_info[package_name]}-${version}_$revision.tar.gz"
+}
 
-  mkdir -p "$(bottle_subdir $formula)/"
-  pushd $(bottle_subdir $formula) > /dev/null
-    rm -rf *
-    mkdir "$(version "$formula")"
-    pushd "$(version "$formula")" > /dev/null
-      if (array_contains hets_formulas $formula)
-      then
-        bottle_formula_copy_files_to_bottle_dir_hets $formula $HOMEBREW_PREFIX
-      elif [ "$formula" = 'factplusplus' ]
-      then
-        bottle_formula_copy_files_to_bottle_dir_factplusplus $formula $HOMEBREW_PREFIX
-      fi
-    popd > /dev/null
+tarball_name_with_os_and_revision() {
+  eval "declare -A package_info="${1#*=}
+  local OS="$2"
+  local version="$(hets_version "$(declare -p package_info)")"
+  local revision="${package_info[revision]}"
+  echo "${package_info[package_name]}-${version}_$revision.$OS.bottle.$revision.tar.gz"
+}
+
+create_tarball() {
+  eval "declare -A package_info="${1#*=}
+	local bottle_dir="$(versioned_bottle_dir "$(declare -p package_info)")"
+  local tarball="$(tarball_name "$(declare -p package_info)")"
+
+  pushd "$local_bottle_dir" > /dev/null
+    tar czf "$tarball" "$bottle_dir"
+
+    local shasum=$(shasum -a 256 "$tarball" | cut -d ' ' -f1)
+    echo -n "$shasum" > "${tarball}.sha256sum"
   popd > /dev/null
 }
 
-bottle_formula_copy_files_to_bottle_dir_hets() {
-  local formula="$1"
-  local HOMEBREW_PREFIX="$2"
-  echo "{\"used_options\":[],\"unused_options\":[],\"built_as_bottle\":true,\"poured_from_bottle\":false,\"time\":null,\"source_modified_time\":$(version_unix_timestamp "$formula"),\"HEAD\":null,\"stdlib\":null,\"compiler\":\"ghc\",\"source\":{\"path\":\"@@HOMEBREW_PREFIX@@/Library/Formula/$formula\",\"tap\":\"spechub/hets\",\"spec\":\"stable\"}}" > INSTALL_RECEIPT.json
+upload_tarball() {
+  eval "declare -A package_info="${1#*=}
+	local bottle_dir="$(versioned_bottle_dir "$(declare -p package_info)")"
+  local tarball="$(tarball_name "$(declare -p package_info)")"
 
-  mkdir "bin"
-  pushd "bin" > /dev/null
-    echo "#!/bin/bash
-export LANG=en_US.UTF-8
-export LANGUAGE=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export HETS_LIB="\${HETS_LIB:-${HOMEBREW_PREFIX}/opt/hets-lib}"
-export HETS_MAGIC="\${HETS_MAGIC:-${HOMEBREW_PREFIX}/opt/${formula}/lib/hets.magic}"
-export HETS_OWL_TOOLS="\${HETS_OWL_TOOLS:-${HOMEBREW_PREFIX}/opt/${formula}/lib/hets-owl-tools}"
-export HETS_APROVE="\${HETS_APROVE:-\$HETS_OWL_TOOLS/AProVE.jar}"
-export HETS_ONTODMU="\${HETS_ONTODMU:-\$HETS_OWL_TOOLS/OntoDMU.jar}"
-export HETS_JNI_LIBS="\${HETS_JNI_LIBS:-${HOMEBREW_PREFIX}/opt/factplusplus}"
-export PELLET_PATH="\${PELLET_PATH:-${HOMEBREW_PREFIX}/opt/pellet}"
-exec \"${HOMEBREW_PREFIX}/opt/${formula}/bin/${formula}-bin\" \"\$@\"" > $formula
-    cp "$(repo_local_dir "$formula")/${formula}" "./${formula}-bin"
-    chmod +x $formula
-    chmod +x "${formula}-bin"
-  popd > /dev/null
-
-  mkdir "lib"
-  pushd "lib" > /dev/null
-    cp "$(repo_local_dir "$formula")/magic/hets.magic" "./${formula}.magic"
-
-    mkdir "hets-owl-tools"
-    pushd "hets-owl-tools" > /dev/null
-      cp "$(repo_local_dir "$formula")/OWL2/OWL2Parser.jar" .
-      cp "$(repo_local_dir "$formula")/OWL2/OWLLocality.jar" .
-      cp "$(repo_local_dir "$formula")/DMU/OntoDMU.jar" .
-      cp "$(repo_local_dir "$formula")/CASL/Termination/AProVE.jar" .
-
-      mkdir "lib"
-      pushd "lib" > /dev/null
-        cp "$(repo_local_dir "$formula")/OWL2/lib/owlapi-osgidistribution-3.5.2.jar" .
-        cp "$(repo_local_dir "$formula")/OWL2/lib/guava-18.0.jar" .
-        cp "$(repo_local_dir "$formula")/OWL2/lib/trove4j-3.0.3.jar" .
-      popd > /dev/null
-    popd > /dev/null
-  popd > /dev/null
-}
-
-bottle_formula_copy_files_to_bottle_dir_factplusplus() {
-  local formula="$1"
-  local HOMEBREW_PREFIX="$2"
-  echo "{\"used_options\":[],\"unused_options\":[],\"built_as_bottle\":true,\"poured_from_bottle\":false,\"time\":null,\"source_modified_time\":$(version_unix_timestamp "$formula"),\"HEAD\":null,\"stdlib\":\"libstdcxx\",\"compiler\":\"clang\",\"source\":{\"path\":\"@@HOMEBREW_PREFIX@@/Library/Formula/$formula\",\"tap\":\"spechub/hets\",\"spec\":\"stable\"}}" > INSTALL_RECEIPT.json
-  cp "$(repo_local_dir "$formula")/FaCT++.C/obj/libfact.jnilib" .
-  cp "$(repo_local_dir "$formula")/FaCT++.JNI/obj/libFaCTPlusPlusJNI.jnilib" .
-}
-
-bottle_base_tarball() {
-  local formula="$1"
-  echo "${formula}-$(version "$formula").tar.gz"
-}
-
-bottle_base_tarball_absolute() {
-  local formula="$1"
-  echo "${bottle_local_dir}/$(bottle_base_tarball $formula)"
-}
-
-bottle_tarball() {
-  local formula="$1"
-  local os="$2"
-  local release="${3:-1}"
-  echo "${formula}-$(version "$formula").${os}.bottle.${release}.tar.gz"
-}
-
-bottle_formula_create_tarball() {
-  local formula="$1"
-  local base_tarball="$(bottle_base_tarball_absolute $formula)"
-
-  pushd "$bottle_local_dir" > /dev/null
-    tar czf "$base_tarball" $formula
-  popd > /dev/null
-
-  local shasum=$(shasum -a 256 "$base_tarball" | cut -d ' ' -f1)
-  echo -n "$shasum" > "${base_tarball}.shasum"
-}
-
-bottle_shasum() {
-  local formula="$1"
-  cat "$(bottle_base_tarball_absolute $formula).shasum"
-}
-
-bottle_formula_upload_tarball() {
-  local formula="$1"
-  scp "$(bottle_base_tarball_absolute $formula)" "${bottle_remote_destination_host}:${bottle_remote_destination_directory}"
-  pushd "$bottle_local_dir" > /dev/null
-    for os in "${oses[@]}"
+  pushd "$local_bottle_dir" > /dev/null
+    ssh "$remote_homebrew_bottle_host" mkdir -p "$remote_homebrew_bottle_dir"
+    scp "$tarball" \
+      "${remote_homebrew_bottle_host}:${remote_homebrew_bottle_dir}"
+    for OS in "${OSes[@]}"
     do
-      ssh "$bottle_remote_destination_host" ln -f -s "${bottle_remote_destination_directory}/$(bottle_base_tarball $formula)" "${bottle_remote_destination_directory}/$(bottle_tarball $formula $os)"
+			local bottle_filename="$(tarball_name_with_os_and_revision "$(declare -p package_info)" "$OS")"
+			ssh "$remote_homebrew_bottle_host" ln -sf \
+				"$remote_homebrew_bottle_dir/$tarball" \
+				"$remote_homebrew_bottle_dir/$bottle_filename"
     done
   popd > /dev/null
 }
 
-update_all_formulas() {
-  for formula in "${formulas[@]}"
-  do
-    update_formula $formula
-  done
-}
+bottle_shasum() {
+  eval "declare -A package_info="${1#*=}
+  local tarball="$(tarball_name "$(declare -p package_info)")"
 
-update_formula() {
-  local formula="$1"
-  local formula_file="${formula}.rb"
-
-  if hash gsed 2>/dev/null
-  then
-    local sed=gsed
-  else
-    local sed=sed
-  fi
-
-  pushd $base_dir > /dev/null
-    $sed -i "s/@@version_commit = '.*/@@version_commit = '$(version_commit "$formula")'/g" $formula_file
-    $sed -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$(version_unix_timestamp "$formula")'/g" $formula_file
-    $sed -i "s/sha256 '[^']*'/sha256 '$(bottle_shasum $formula)'/g" $formula_file
-    git add $formula_file
-    git commit -m "Update $formula to $(version "$formula")"
+  pushd "$local_bottle_dir" > /dev/null
+    cat "${tarball}.sha256sum"
   popd > /dev/null
 }
+
+
+
+# ------------------- #
+# Update formula file #
+# ------------------- #
+
+patch_formula() {
+  eval "declare -A package_info="${1#*=}
+  local formula_file="${package_info[package_name]}.rb"
+  pushd "$base_dir" > /dev/null
+    $SED -i "s/@@version_commit = '.*/@@version_commit = '$(hets_version_commit_oid "$(declare -p package_info)")'/" $formula_file
+    $SED -i "s/@@version_no = '.*/@@version_no = '$(hets_version_no "$(declare -p package_info)")'/" $formula_file
+    $SED -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$(hets_version_unix_timestamp "$(declare -p package_info)")'/" $formula_file
+    $SED -i "s/  revision .*/  revision ${package_info[revision]}/" $formula_file
+    $SED -i "s/root_url '.*/root_url '$remote_homebrew_bottle_root_url'/" $formula_file
+    $SED -i "s/sha256 '[^']*'/sha256 '$(bottle_shasum "$(declare -p package_info)")'/g" $formula_file
+  popd > /dev/null
+}
+
+commit_formula() {
+  eval "declare -A package_info="${1#*=}
+  local formula_file="${package_info[package_name]}.rb"
+  pushd "$base_dir" > /dev/null
+    git add $formula_file
+    git commit -m "Update ${package_info[package_name]} to $(hets_version "$(declare -p package_info)")_${package_info[revision]}"
+  popd > /dev/null
+}
+
+
+
+# ---------- #
+# Publishing #
+# ---------- #
 
 push_formula_changes() {
   pushd $base_dir > /dev/null
     git push
   popd > /dev/null
-}
-
-# The **name** of the array needs to be passed as first argument
-# The search value needs to be passed as second argument
-array_contains() {
-  local array="$1[@]"
-  local seeking=$2
-  local in=1
-  for element in "${!array}"
-  do
-    if [[ $element == $seeking ]]
-    then
-      in=0
-      break
-    fi
-  done
-  return $in
 }
