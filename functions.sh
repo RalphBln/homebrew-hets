@@ -26,15 +26,20 @@ remote_homebrew_bottle_root_url="http://www.informatik.uni-bremen.de/~eugenk/hom
 # Declare associative arrays
 declare -A hets_commons hets_desktop hets_server
 
+factplusplus[package_name]="factplusplus"
+factplusplus[upstream_repository]="https://bitbucket.org/dtsarkov/factplusplus.git"
+factplusplus[ref]="${REF_FACTPLUSPLUS:-origin/master}"
+factplusplus[revision]="${REVISION_FACTPLUSPLUS:-1}"
+
 hets_commons[package_name]="hets-commons"
 hets_commons[upstream_repository]="https://github.com/spechub/Hets.git"
-hets_commons[ref]="${REF_HETS_COMMONS:-master}"
+hets_commons[ref]="${REF_HETS_COMMONS:-origin/master}"
 hets_commons[revision]="${REVISION_HETS_COMMONS:-1}"
 hets_commons[make_install_target]="install-common"
 
 hets_desktop[package_name]="hets-desktop"
 hets_desktop[upstream_repository]="https://github.com/spechub/Hets.git"
-hets_desktop[ref]="${REF_HETS_DESKTOP:-master}"
+hets_desktop[ref]="${REF_HETS_DESKTOP:-origin/master}"
 hets_desktop[revision]="${REVISION_HETS_DESKTOP:-1}"
 hets_desktop[make_compile_target]="hets.bin"
 hets_desktop[make_install_target]="install-hets"
@@ -44,7 +49,7 @@ hets_desktop[cabal_flags]=""
 
 hets_server[package_name]="hets-server"
 hets_server[upstream_repository]="https://github.com/spechub/Hets.git"
-hets_server[ref]="${REF_HETS_SERVER-master}"
+hets_server[ref]="${REF_HETS_SERVER-origin/master}"
 hets_server[revision]="${REVISION_HETS_SERVER:-1}"
 hets_server[make_compile_target]="hets_server.bin"
 hets_server[make_install_target]="install-hets_server"
@@ -106,7 +111,20 @@ install_package_to_prefix() {
   mkdir -p "$local_bottle_dir/$bottle_dir"
   rm -rf "$local_bottle_dir/$bottle_dir/*"
   rm -rf "$local_bottle_dir/$bottle_dir/.*"
-	make ${package_info[make_install_target]} PREFIX=$local_bottle_dir/$bottle_dir
+  case "${package_info[package_name]}" in
+    "factplusplus")
+      install_factplusplus "$bottle_dir"
+      ;;
+    *)
+      make ${package_info[make_install_target]} PREFIX="$local_bottle_dir/$bottle_dir"
+      ;;
+  esac
+}
+
+install_factplusplus() {
+  local bottle_dir="$1"
+  cp "FaCT++.C/obj/libfact.jnilib" "$local_bottle_dir/$bottle_dir"
+  cp "FaCT++.JNI/obj/libFaCTPlusPlusJNI.jnilib" "$local_bottle_dir/$bottle_dir"
 }
 
 post_process_installation() {

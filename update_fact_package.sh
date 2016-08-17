@@ -10,10 +10,12 @@ base_dir=$(real_dirname $0)
 
 source "$base_dir/functions.sh"
 
-# overwrite formulas array - only these are going to be updated.
-formulas=('factplusplus')
+set -x
 
-sync_formula_repositories
-bottle_all_formulas
-update_all_formulas
-push_formula_changes
+sync_upstream_repository "$(declare -p factplusplus)"
+bottle_formula "$(declare -p factplusplus)"
+
+echo ""
+echo "Done."
+echo ""
+echo "Remember to update the factplusplus.rb"
