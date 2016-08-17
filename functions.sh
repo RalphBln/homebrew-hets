@@ -49,7 +49,7 @@ hets_desktop[cabal_flags]=""
 
 hets_server[package_name]="hets-server"
 hets_server[upstream_repository]="https://github.com/spechub/Hets.git"
-hets_server[ref]="${REF_HETS_SERVER-origin/master}"
+hets_server[ref]="${REF_HETS_SERVER:-origin/master}"
 hets_server[revision]="${REVISION_HETS_SERVER:-1}"
 hets_server[make_compile_target]="hets_server.bin"
 hets_server[make_install_target]="install-hets_server"
@@ -62,7 +62,7 @@ OSes=('mavericks' 'yosemite' 'el_capitan')
 ghc_prefix=`ghc --print-libdir | sed -e 's+/lib.*/.*++g'`
 cabal_options="-p --global --prefix=$ghc_prefix"
 
-local_repository_dir="$base_dir/build/git-repositories"
+local_upstream_repo_dir="$base_dir/build/upstream-repositories"
 local_bottle_dir="$base_dir/build/bottles"
 
 
@@ -93,6 +93,10 @@ install_hets_dependencies() {
     cabal install gtk2hs-buildtools $cabal_options
     cabal install glib $cabal_options
     cabal install gtk -f have-quartz-gtk $cabal_options
+    local gladedir="$(mktemp -d -t 'glade')"
+    git clone https://github.com/cmaeder/glade.git "$gladedir/glade"
+    cabal install "$gladedir/glade/glade.cabal" $cabal_options --with-gcc=gcc-4.9
+    rm -rf "$gladedir"
     cabal install --only-dependencies "${package_info[cabal_flags]}" $cabal_options
   fi
 }
@@ -213,7 +217,7 @@ write_install_receipt() {
 
 sync_upstream_repository() {
   eval "declare -A package_info="${1#*=}
-  if [ ! -d "$local_repository_dir/${package_info[package_name]}" ]
+  if [ ! -d "$local_upstream_repo_dir/${package_info[package_name]}" ]
   then
     clone_upstream_repository "$(declare -p package_info)"
   else
@@ -224,10 +228,10 @@ sync_upstream_repository() {
 
 clone_upstream_repository() {
   eval "declare -A package_info="${1#*=}
-  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   if [ ! -d "$repo_dir" ]; then
-    mkdir -p "$local_repository_dir"
-    pushd "$local_repository_dir" > /dev/null
+    mkdir -p "$local_upstream_repo_dir"
+    pushd "$local_upstream_repo_dir" > /dev/null
       git clone "${package_info[upstream_repository]}" "$repo_dir"
     popd > /dev/null
   fi
@@ -235,7 +239,7 @@ clone_upstream_repository() {
 
 pull_upstream_repository() {
   eval "declare -A package_info="${1#*=}
-  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
     git fetch
   popd > /dev/null
@@ -243,7 +247,7 @@ pull_upstream_repository() {
 
 checkout_ref() {
   eval "declare -A package_info="${1#*=}
-  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
     git reset --hard ${package_info[ref]}
   popd > /dev/null
@@ -254,9 +258,10 @@ checkout_ref() {
 # Version Numbers #
 # --------------- #
 
+# execute AFTER compiling
 hets_version_commit_oid() {
   eval "declare -A package_info="${1#*=}
-  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
     echo $(git log -1 --format='%H')
   popd > /dev/null
@@ -265,7 +270,7 @@ hets_version_commit_oid() {
 # execute AFTER compiling
 hets_version_no() {
   eval "declare -A package_info="${1#*=}
-  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
     cat version_nr
   popd > /dev/null
@@ -274,12 +279,13 @@ hets_version_no() {
 # execute AFTER compiling
 hets_version_unix_timestamp() {
   eval "declare -A package_info="${1#*=}
-  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
 		echo $(git log -1 --format='%ct')
   popd > /dev/null
 }
 
+# execute AFTER compiling
 hets_version() {
   eval "declare -A package_info="${1#*=}
   local version="$(hets_version_no "$(declare -p package_info)")"
@@ -292,21 +298,9 @@ hets_version() {
 # Bottling #
 # -------- #
 
-bottle_subdir() {
-  eval "declare -A package_info="${1#*=}
-  echo "${local_bottle_dir}/${package_info[package_name]}"
-}
-
-versioned_bottle_dir() {
-  eval "declare -A package_info="${1#*=}
-  local version="$(hets_version "$(declare -p package_info)")"
-  local revision="${package_info[revision]}"
-	echo "${package_info[package_name]}/${version}_$revision"
-}
-
 bottle_formula() {
   eval "declare -A package_info="${1#*=}
-  local repo_dir="$local_repository_dir/${package_info[package_name]}"
+  local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
 
   pushd "$repo_dir" > /dev/null
     case "${package_info[package_name]}" in
@@ -322,6 +316,13 @@ bottle_formula() {
     create_tarball "$(declare -p package_info)"
     upload_tarball "$(declare -p package_info)"
   popd > /dev/null
+}
+
+versioned_bottle_dir() {
+  eval "declare -A package_info="${1#*=}
+  local version="$(hets_version "$(declare -p package_info)")"
+  local revision="${package_info[revision]}"
+	echo "${package_info[package_name]}/${version}_$revision"
 }
 
 tarball_name() {
