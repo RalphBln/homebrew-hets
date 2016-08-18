@@ -21,6 +21,7 @@ class HetsDesktop < Formula
 
   depends_on 'cabal-install' => :build
   depends_on 'ghc' => :build
+  depends_on 'gcc49' => :build
   depends_on 'glib' => :build
   depends_on 'binutils' => :build
 
@@ -33,6 +34,7 @@ class HetsDesktop < Formula
   depends_on :x11
   depends_on 'hets-commons'
   depends_on 'udrawgraph'
+  depends_on 'libglade'
 
   depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
@@ -64,23 +66,32 @@ class HetsDesktop < Formula
   protected
 
   def install_dependencies
-    puts 'Installing dependencies...'
     ghc_prefix = `ghc --print-libdir | sed -e 's+/lib.*/.*++g'`.strip
     opts = ['-p', '--global', "--prefix=#{ghc_prefix}"]
     flags = %w()
 
-    system('cabal', 'update')
+    package_list = `ghc-pkg list`
+    if !package_list.include?(' gtk-')
+      puts 'Installing dependencies...'
 
-    # GTK needs special treatment on macOS: The order of installation steps is
-    # very important, as is the environment (pkg-config needs to be found).
-    # See also http://stackoverflow.com/a/38919482/2068056
-    ENV['PATH'] = "/usr/local/bin/:#{ENV['PATH']}"
-    ENV['PKG_CONFIG_PATH'] = "/usr/local/lib/pkgconfig:"
-    system('cabal', 'install', 'alex', 'happy', *opts)
-    system('cabal', 'install', 'gtk2hs-buildtools', *opts)
-    system('cabal', 'install', 'glib', *opts)
-    system('cabal', 'install', 'gtk', '-f', 'have-quartz-gtk', *opts)
+      system('cabal', 'update')
 
+      # GTK needs special treatment on macOS: The order of installation steps is
+      # very important, as is the environment (pkg-config needs to be found).
+      # See also http://stackoverflow.com/a/38919482/2068056
+      ENV['PATH'] = "/usr/local/bin/:#{ENV['PATH']}"
+      ENV['PKG_CONFIG_PATH'] = "/usr/local/lib/pkgconfig:"
+      system('cabal', 'install', 'alex', 'happy', *opts)
+      system('cabal', 'install', 'gtk2hs-buildtools', *opts)
+      system('cabal', 'install', 'glib', *opts)
+      system('cabal', 'install', 'gtk', '-f', 'have-quartz-gtk', *opts)
+      Dir.mktmpdir do |tmpdir|
+        Dir.chdir(tmpdir) do
+          system('git', 'clone', '--depth=1', 'https://github.com/cmaeder/glade.git', 'glade')
+          system('cabal', 'install', 'glade/glade.cabal', *opts, '--with-gcc=gcc-4.9')
+        end
+      end
+    end
     system('cabal', 'install', '--only-dependencies', *flags, *opts)
   end
 
