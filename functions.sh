@@ -104,6 +104,14 @@ install_hets_dependencies() {
 compile_package() {
   eval "declare -A package_info="${1#*=}
 
+  # always update the version file
+  case "${package_info[package_name]}" in
+    "factplusplus")
+      ;;
+    *)
+      make rev.txt
+      ;;
+  esac
 	if [[ -n "${package_info[make_compile_target]}" ]]
 	then
     make ${package_info[make_compile_target]}
