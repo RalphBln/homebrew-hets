@@ -9,14 +9,14 @@ class HetsDesktop < Formula
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "#{@@version_no}-#{@@version_unix_timestamp}"
-  revision 1
+  revision 2
 
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
-    revision 1
-    sha256 '46ed0c83cce63d1b0be04d50a1631b76144b038a2dd391a06d050556af612564' => :mavericks
-    sha256 '46ed0c83cce63d1b0be04d50a1631b76144b038a2dd391a06d050556af612564' => :yosemite
-    sha256 '46ed0c83cce63d1b0be04d50a1631b76144b038a2dd391a06d050556af612564' => :el_capitan
+    revision 2
+    sha256 '016cc2e8e5186d2982ce57ba46a78fcadcdc212e6ba4ad32eefdbdf63c968d4a' => :mavericks
+    sha256 '016cc2e8e5186d2982ce57ba46a78fcadcdc212e6ba4ad32eefdbdf63c968d4a' => :yosemite
+    sha256 '016cc2e8e5186d2982ce57ba46a78fcadcdc212e6ba4ad32eefdbdf63c968d4a' => :el_capitan
   end
 
   depends_on 'cabal-install' => :build
@@ -119,6 +119,7 @@ WRAPPER_SCRIPT_HEADER
 		# Replace the header until (including) the line starting with PROG=
 		inreplace(bin.join(prog), /\A.*PROG=[^\n]*$/m, wrapper_script_header)
     inreplace(bin.join(prog), 'BASEDIR', 'COMMONSDIR')
+    inreplace(bin.join(prog), /PELLET_PATH=.*$/, "PELLET_PATH=#{HOMEBREW_PREFIX.join('opt', 'pellet', 'bin')}")
     inreplace(bin.join(prog), /^\s*exec\s+(["']).*COMMONSDIR[^\/]*/, 'exec \1${PROGDIR}')
   end
 end

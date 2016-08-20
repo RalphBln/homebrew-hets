@@ -9,14 +9,14 @@ class HetsCommons < Formula
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "#{@@version_no}-#{@@version_unix_timestamp}"
-  revision 1
+  revision 2
 
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
-    revision 1
-    sha256 '881ce135c5ff27bcb272b4de35c544320925d49472ddbe272b5c0f138fd96a6f' => :mavericks
-    sha256 '881ce135c5ff27bcb272b4de35c544320925d49472ddbe272b5c0f138fd96a6f' => :yosemite
-    sha256 '881ce135c5ff27bcb272b4de35c544320925d49472ddbe272b5c0f138fd96a6f' => :el_capitan
+    revision 2
+    sha256 'f24e7dbf160c697a66a92db3302044831ee51f71720014ad677e8efa13990cc6' => :mavericks
+    sha256 'f24e7dbf160c697a66a92db3302044831ee51f71720014ad677e8efa13990cc6' => :yosemite
+    sha256 'f24e7dbf160c697a66a92db3302044831ee51f71720014ad677e8efa13990cc6' => :el_capitan
   end
 
   depends_on :java => :build
@@ -31,8 +31,6 @@ class HetsCommons < Formula
     system(%(make install-common PREFIX="#{prefix}"))
     FileUtils.ln_sf(HOMEBREW_PREFIX.join('opt', 'hets-lib').to_s,
                     lib.join('hets', 'hets-lib').to_s)
-    FileUtils.ln_sf(HOMEBREW_PREFIX.join('opt', 'pellet', 'bin').to_s,
-                    share.join('pellet').to_s)
   end
 
   def caveats

@@ -151,7 +151,6 @@ post_process_installation() {
       local brew_prefix="$(brew --prefix)"
       pushd "$local_bottle_dir/$bottle_dir" > /dev/null
         ln -sf "$brew_prefix/opt/hets-lib" "lib/hets/hets-lib"
-        ln -sf "$brew_prefix/opt/pellet/bin" "share/pellet"
       popd > /dev/null
 			;;
     "hets-desktop"|"hets-server")
@@ -205,8 +204,9 @@ WRAPPER_SCRIPT_HEADER
 
     # search and replace
 		$SED -i "s/BASEDIR/COMMONSDIR/g" "$wrapper_script"
-		$SED -i "s/^\s*exec\s*\"\${COMMONSDIR/exec \"\${PROGDIR/g" "$wrapper_script"
-		$SED -i "s/^\s*exec\s*'\${COMMONSDIR/exec '\${PROGDIR/g" "$wrapper_script"
+		$SED -i "s#PELLET_PATH=.*#PELLET_PATH=$brew_prefix/opt/pellet/bin#"
+		$SED -i "s/^\s*exec\s*\"\${COMMONSDIR/exec \"\${PROGDIR/" "$wrapper_script"
+		$SED -i "s/^\s*exec\s*'\${COMMONSDIR/exec '\${PROGDIR/" "$wrapper_script"
   popd > /dev/null
 }
 
