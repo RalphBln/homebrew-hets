@@ -2,21 +2,21 @@ require "formula"
 require 'rexml/document'
 
 class HetsDesktop < Formula
-  @@version_commit = 'b259e3b3e05433b2018f45d5781000fa3af7cbdc'
+  @@version_commit = 'b8488370dfa4f324561bf90f8dd443696317e385'
   @@version_no = '0.99'
-  @@version_unix_timestamp = '1471594578'
+  @@version_unix_timestamp = '1472225208'
   homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "#{@@version_no}-#{@@version_unix_timestamp}"
-  revision 2
+  revision 1
 
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
-    revision 2
-    sha256 '016cc2e8e5186d2982ce57ba46a78fcadcdc212e6ba4ad32eefdbdf63c968d4a' => :mavericks
-    sha256 '016cc2e8e5186d2982ce57ba46a78fcadcdc212e6ba4ad32eefdbdf63c968d4a' => :yosemite
-    sha256 '016cc2e8e5186d2982ce57ba46a78fcadcdc212e6ba4ad32eefdbdf63c968d4a' => :el_capitan
+    revision 1
+    sha256 'cd0a3a079015c61ee9ddeb8b42650b4732793a5ac2ec928bb4b95bbd5ef8fba6' => :mavericks
+    sha256 'cd0a3a079015c61ee9ddeb8b42650b4732793a5ac2ec928bb4b95bbd5ef8fba6' => :yosemite
+    sha256 'cd0a3a079015c61ee9ddeb8b42650b4732793a5ac2ec928bb4b95bbd5ef8fba6' => :el_capitan
   end
 
   depends_on 'cabal-install' => :build

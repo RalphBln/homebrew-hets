@@ -2,21 +2,21 @@ require "formula"
 require 'rexml/document'
 
 class HetsCommons < Formula
-  @@version_commit = 'b259e3b3e05433b2018f45d5781000fa3af7cbdc'
+  @@version_commit = 'b8488370dfa4f324561bf90f8dd443696317e385'
   @@version_no = '0.99'
-  @@version_unix_timestamp = '1471594578'
+  @@version_unix_timestamp = '1472225208'
   homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "#{@@version_no}-#{@@version_unix_timestamp}"
-  revision 2
+  revision 1
 
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
-    revision 2
-    sha256 'f24e7dbf160c697a66a92db3302044831ee51f71720014ad677e8efa13990cc6' => :mavericks
-    sha256 'f24e7dbf160c697a66a92db3302044831ee51f71720014ad677e8efa13990cc6' => :yosemite
-    sha256 'f24e7dbf160c697a66a92db3302044831ee51f71720014ad677e8efa13990cc6' => :el_capitan
+    revision 1
+    sha256 '885379c2bfa13aae813d10d8fbe1ca413d2f9b9316b80b8433db8425f0724477' => :mavericks
+    sha256 '885379c2bfa13aae813d10d8fbe1ca413d2f9b9316b80b8433db8425f0724477' => :yosemite
+    sha256 '885379c2bfa13aae813d10d8fbe1ca413d2f9b9316b80b8433db8425f0724477' => :el_capitan
   end
 
   depends_on :java => :build
