@@ -9,7 +9,7 @@ class HetsServer < Formula
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "#{@@version_no}-#{@@version_unix_timestamp}"
-  revision 1
+  revision 2
 
   bottle do
     root_url 'http://hets.eu/downloads/hets/macOS'
@@ -26,6 +26,7 @@ class HetsServer < Formula
   depends_on 'binutils' => :build
 
   depends_on 'hets-commons'
+  depends_on 'wget'
 
   depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
