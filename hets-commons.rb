@@ -9,15 +9,15 @@ class HetsCommons < Formula
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
   version "#{@@version_no}-#{@@version_unix_timestamp}"
-  revision 1
+  revision 2
 
   bottle do
     root_url 'http://hets.eu/downloads/hets/macOS'
-    revision 1
-    sha256 'f930b18598ebc0468dfe2b54163453f7eae007050fa088755c464c1eaa10bcf4' => :mavericks
-    sha256 'f930b18598ebc0468dfe2b54163453f7eae007050fa088755c464c1eaa10bcf4' => :yosemite
-    sha256 'f930b18598ebc0468dfe2b54163453f7eae007050fa088755c464c1eaa10bcf4' => :el_capitan
-    sha256 'f930b18598ebc0468dfe2b54163453f7eae007050fa088755c464c1eaa10bcf4' => :sierra
+    revision 2
+    sha256 'f6fc9514c7d19adbec0a99715fe30b7fb4627d809fee6ef8c7d14d5740900de2' => :mavericks
+    sha256 'f6fc9514c7d19adbec0a99715fe30b7fb4627d809fee6ef8c7d14d5740900de2' => :yosemite
+    sha256 'f6fc9514c7d19adbec0a99715fe30b7fb4627d809fee6ef8c7d14d5740900de2' => :el_capitan
+    sha256 'f6fc9514c7d19adbec0a99715fe30b7fb4627d809fee6ef8c7d14d5740900de2' => :sierra
   end
 
   depends_on :java => :build

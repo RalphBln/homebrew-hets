@@ -13,11 +13,11 @@ class HetsDesktop < Formula
 
   bottle do
     root_url 'http://hets.eu/downloads/hets/macOS'
-    revision 1
-    sha256 'c30bdfe497902693a9aa96ff1d6d3f0f829645dfcead04614090e257ace6eb22' => :mavericks
-    sha256 'c30bdfe497902693a9aa96ff1d6d3f0f829645dfcead04614090e257ace6eb22' => :yosemite
-    sha256 'c30bdfe497902693a9aa96ff1d6d3f0f829645dfcead04614090e257ace6eb22' => :el_capitan
-    sha256 'c30bdfe497902693a9aa96ff1d6d3f0f829645dfcead04614090e257ace6eb22' => :sierra
+    revision 2
+    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :mavericks
+    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :yosemite
+    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :el_capitan
+    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :sierra
   end
 
   depends_on 'cabal-install' => :build
