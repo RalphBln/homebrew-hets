@@ -2,9 +2,9 @@ require "formula"
 require 'rexml/document'
 
 class HetsDesktop < Formula
-  @@version_commit = 'b8488370dfa4f324561bf90f8dd443696317e385'
+  @@version_commit = 'b39edff7b191f41fb4b7268e00dd0289965ca9bf'
   @@version_no = '0.99'
-  @@version_unix_timestamp = '1472225208'
+  @@version_unix_timestamp = '1484075143'
   homepage "http://hets.eu"
   head "https://github.com/spechub/Hets.git", :using => :git
   url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
@@ -12,11 +12,12 @@ class HetsDesktop < Formula
   revision 1
 
   bottle do
-    root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
+    root_url 'http://hets.eu/downloads/hets/macOS'
     revision 1
-    sha256 'cd0a3a079015c61ee9ddeb8b42650b4732793a5ac2ec928bb4b95bbd5ef8fba6' => :mavericks
-    sha256 'cd0a3a079015c61ee9ddeb8b42650b4732793a5ac2ec928bb4b95bbd5ef8fba6' => :yosemite
-    sha256 'cd0a3a079015c61ee9ddeb8b42650b4732793a5ac2ec928bb4b95bbd5ef8fba6' => :el_capitan
+    sha256 'c30bdfe497902693a9aa96ff1d6d3f0f829645dfcead04614090e257ace6eb22' => :mavericks
+    sha256 'c30bdfe497902693a9aa96ff1d6d3f0f829645dfcead04614090e257ace6eb22' => :yosemite
+    sha256 'c30bdfe497902693a9aa96ff1d6d3f0f829645dfcead04614090e257ace6eb22' => :el_capitan
+    sha256 'c30bdfe497902693a9aa96ff1d6d3f0f829645dfcead04614090e257ace6eb22' => :sierra
   end
 
   depends_on 'cabal-install' => :build
@@ -39,9 +40,11 @@ class HetsDesktop < Formula
   depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
   depends_on 'factplusplus' => :recommended
+  depends_on 'leo2' => :recommended
   depends_on 'owltools' => :recommended
   depends_on 'pellet' => :recommended
   depends_on 'spass' => :recommended
+  depends_on 'vampire' => :recommended
 
   def install
     make_compile_target = 'hets.bin'

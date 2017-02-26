@@ -10,8 +10,8 @@ base_dir=$(real_dirname $0)
 
 # Where the bottles are uploaded to
 remote_homebrew_bottle_host="uni"
-remote_homebrew_bottle_dir="/home/wwwuser/eugenk/homebrew-hets"
-remote_homebrew_bottle_root_url="http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets"
+remote_homebrew_bottle_dir="/web/03_theo/sites/theo.iks.cs.ovgu.de/htdocs/downloads/hets/macOS"
+remote_homebrew_bottle_root_url="http://hets.eu/downloads/hets/macOS"
 
 # This file makes heavy use of passing associative arrays to functions.
 #
@@ -57,7 +57,7 @@ hets_server[executable]="hets-server"
 hets_server[binary]="hets_server.bin"
 hets_server[cabal_flags]="-f server -f -gtkglade -f -uniform"
 
-OSes=('mavericks' 'yosemite' 'el_capitan')
+OSes=('mavericks' 'yosemite' 'el_capitan' 'sierra')
 
 ghc_prefix=`ghc --print-libdir | sed -e 's+/lib.*/.*++g'`
 cabal_options="-p --global --prefix=$ghc_prefix"
@@ -373,7 +373,7 @@ upload_tarball() {
     for OS in "${OSes[@]}"
     do
 			local bottle_filename="$(tarball_name_with_os_and_revision "$(declare -p package_info)" "$OS")"
-			ssh "$remote_homebrew_bottle_host" ln -sf \
+			ssh "$remote_homebrew_bottle_host" ln -f \
 				"$remote_homebrew_bottle_dir/$tarball" \
 				"$remote_homebrew_bottle_dir/$bottle_filename"
     done
