@@ -8,6 +8,15 @@ real_dirname() {
 }
 base_dir=$(real_dirname $0)
 
+debug_level=""
+debug() {
+  if [ -n $debug_level ]
+  then
+    # awk " BEGIN { print \"$@\" > \"/dev/fd/2\" }"
+    echo "DEBUG: $@" >&2
+  fi
+}
+
 # Where the bottles are uploaded to
 remote_homebrew_bottle_host="uni"
 remote_homebrew_bottle_dir="/web/03_theo/sites/theo.iks.cs.ovgu.de/htdocs/downloads/hets/macOS"
@@ -24,12 +33,7 @@ remote_homebrew_bottle_root_url="http://hets.eu/downloads/hets/macOS"
 # See http://stackoverflow.com/a/8879444/2068056
 
 # Declare associative arrays
-declare -A hets_commons hets_desktop hets_server
-
-factplusplus[package_name]="factplusplus"
-factplusplus[upstream_repository]="https://bitbucket.org/dtsarkov/factplusplus.git"
-factplusplus[ref]="${REF_FACTPLUSPLUS:-origin/master}"
-factplusplus[revision]="${REVISION_FACTPLUSPLUS:-1}"
+declare -A hets_commons hets_desktop hets_server factplusplus
 
 hets_commons[package_name]="hets-commons"
 hets_commons[upstream_repository]="https://github.com/spechub/Hets.git"
@@ -45,7 +49,6 @@ hets_desktop[make_compile_target]="hets.bin"
 hets_desktop[make_install_target]="install-hets"
 hets_desktop[executable]="hets"
 hets_desktop[binary]="hets.bin"
-hets_desktop[cabal_flags]=""
 
 hets_server[package_name]="hets-server"
 hets_server[upstream_repository]="https://github.com/spechub/Hets.git"
@@ -55,7 +58,12 @@ hets_server[make_compile_target]="hets_server.bin"
 hets_server[make_install_target]="install-hets_server"
 hets_server[executable]="hets-server"
 hets_server[binary]="hets_server.bin"
-hets_server[cabal_flags]="-f server -f -gtkglade -f -uniform"
+
+factplusplus[package_name]="factplusplus"
+factplusplus[upstream_repository]="https://bitbucket.org/dtsarkov/factplusplus.git"
+factplusplus[ref]="${REF_FACTPLUSPLUS:-origin/master}"
+factplusplus[version]="${VERSION_FACTPLUSPLUS:-1}"
+factplusplus[revision]="${REVISION_FACTPLUSPLUS:-1}"
 
 OSes=('mavericks' 'yosemite' 'el_capitan' 'sierra')
 
@@ -83,33 +91,18 @@ fi
 # Build System #
 # ------------ #
 
-install_hets_dependencies() {
-  if [ -z "$(ghc-pkg list | grep " gtk-")" ]
-  then
-    eval "declare -A package_info="${1#*=}
-    cabal update
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:
-    cabal install alex happy $cabal_options
-    cabal install gtk2hs-buildtools $cabal_options
-    cabal install glib $cabal_options
-    cabal install gtk -f have-quartz-gtk $cabal_options
-    local gladedir="$(mktemp -d -t 'glade')"
-    git clone https://github.com/cmaeder/glade.git "$gladedir/glade"
-    cabal install "$gladedir/glade/glade.cabal" $cabal_options --with-gcc=gcc-4.9
-    rm -rf "$gladedir"
-    cabal install --only-dependencies "${package_info[cabal_flags]}" $cabal_options
-  fi
-}
-
 compile_package() {
   eval "declare -A package_info="${1#*=}
 
+  debug "compile_package ${package_info[package_name]}"
   # always update the version file
   case "${package_info[package_name]}" in
     "factplusplus")
+      make
       ;;
-    *)
-      make rev.txt
+    "hets-desktop"|"hets-server")
+      stack setup
+      make stack
       ;;
   esac
 	if [[ -n "${package_info[make_compile_target]}" ]]
@@ -122,6 +115,9 @@ compile_package() {
 install_package_to_prefix() {
   eval "declare -A package_info="${1#*=}
 	local bottle_dir=$(versioned_bottle_dir "$(declare -p package_info)")
+  debug "install_package_to_prefix ${package_info[package_name]}"
+  debug "install_package_to_prefix.local_bottle_dir: $local_bottle_dir"
+  debug "install_package_to_prefix.bottle_dir: $bottle_dir"
 
   mkdir -p "$local_bottle_dir/$bottle_dir"
   rm -rf "$local_bottle_dir/$bottle_dir/*"
@@ -138,6 +134,7 @@ install_package_to_prefix() {
 
 install_factplusplus() {
   local bottle_dir="$1"
+  debug "install_factplusplus $local_bottle_dir/$bottle_dir"
   cp "FaCT++.C/obj/libfact.jnilib" "$local_bottle_dir/$bottle_dir"
   cp "FaCT++.JNI/obj/libFaCTPlusPlusJNI.jnilib" "$local_bottle_dir/$bottle_dir"
 }
@@ -145,6 +142,8 @@ install_factplusplus() {
 post_process_installation() {
   eval "declare -A package_info="${1#*=}
 	local bottle_dir=$(versioned_bottle_dir "$(declare -p package_info)")
+  debug "post_process_installation ${package_info[package_name]}"
+  debug "post_process_installation.full_bottle_dir: $local_bottle_dir/$bottle_dir"
 
   case "${package_info[package_name]}" in
     "hets-commons")
@@ -171,6 +170,11 @@ post_process_hets() {
   local version_dir="$(basename "$bottle_dir")"
 	local wrapper_script="bin/${package_info[executable]}"
   local brew_cellar="$(brew --cellar)"
+  debug "post_process_hets ${package_info[package_name]}"
+  debug "post_process_hets.full_bottle_dir: $local_bottle_dir/$bottle_dir"
+  debug "post_process_hets.version_dir: $version_dir"
+  debug "post_process_hets.wrapper_script: $wrapper_script"
+  debug "post_process_hets.brew_cellar: $brew_cellar"
 
   pushd "$local_bottle_dir/$bottle_dir" > /dev/null
     rm -f "share/man/man1/hets.1e"
@@ -213,9 +217,12 @@ WRAPPER_SCRIPT_HEADER
 write_install_receipt() {
   eval "declare -A package_info="${1#*=}
   local bottle_dir="$2"
+  debug "post_process_hets ${package_info[package_name]}"
+  debug "post_process_hets.full_bottle_dir: $local_bottle_dir/$bottle_dir"
+  debug "post_process_hets.get_version_unix_timestamp: $(get_version_unix_timestamp "$(declare -p package_info)")"
 
   pushd "$local_bottle_dir/$bottle_dir" > /dev/null
-    echo "{\"used_options\":[],\"unused_options\":[],\"built_as_bottle\":true,\"poured_from_bottle\":false,\"time\":null,\"source_modified_time\":$(hets_version_unix_timestamp "$(declare -p package_info)"),\"HEAD\":null,\"stdlib\":null,\"compiler\":\"ghc\",\"source\":{\"path\":\"@@HOMEBREW_PREFIX@@/Library/Formula/${package_info[package_name]}\",\"tap\":\"spechub/hets\",\"spec\":\"stable\"}}" > INSTALL_RECEIPT.json
+    echo "{\"used_options\":[],\"unused_options\":[],\"built_as_bottle\":true,\"poured_from_bottle\":false,\"time\":null,\"source_modified_time\":$(get_version_unix_timestamp "$(declare -p package_info)"),\"HEAD\":null,\"stdlib\":null,\"compiler\":\"ghc\",\"source\":{\"path\":\"@@HOMEBREW_PREFIX@@/Library/Formula/${package_info[package_name]}\",\"tap\":\"spechub/hets\",\"spec\":\"stable\"}}" > INSTALL_RECEIPT.json
   popd > /dev/null
 }
 
@@ -256,6 +263,9 @@ pull_upstream_repository() {
 checkout_ref() {
   eval "declare -A package_info="${1#*=}
   local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
+  debug "checkout_ref ${package_info[package_name]}"
+  debug "checkout_ref.ref: ${package_info[ref]}"
+  debug "checkout_ref.repo_dir: $repo_dir"
   pushd "$repo_dir" > /dev/null
     git reset --hard ${package_info[ref]}
   popd > /dev/null
@@ -267,38 +277,47 @@ checkout_ref() {
 # --------------- #
 
 # execute AFTER compiling
-hets_version_commit_oid() {
+get_version_commit_oid() {
   eval "declare -A package_info="${1#*=}
   local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
-    echo $(git log -1 --format='%H')
+    local result=$(git log -1 --format='%H')
+    debug "get_version_commit_oid ${package_info[package_name]}"
+    debug "get_version_commit_oid.result: $result"
+    echo $result
   popd > /dev/null
 }
 
 # execute AFTER compiling
-hets_version_no() {
+get_version_unix_timestamp() {
   eval "declare -A package_info="${1#*=}
   local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
-    cat version_nr
+		local result="$(git log -1 --format='%ct')"
+    debug "get_version_unix_timestamp ${package_info[package_name]}"
+    debug "get_version_unix_timestamp.result: $result"
+    echo $result
   popd > /dev/null
 }
 
 # execute AFTER compiling
-hets_version_unix_timestamp() {
+get_version() {
   eval "declare -A package_info="${1#*=}
   local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
+  local result
   pushd "$repo_dir" > /dev/null
-		echo $(git log -1 --format='%ct')
+    case "${package_info[package_name]}" in
+      "hets-commons"|"hets-desktop"|"hets-server")
+        result="$($SED -n -e '/^hetsVersionNumeric =/ { s/.*"\([^"]*\)".*/\1/; p; q; }' Driver/Version.hs)"
+        ;;
+      *)
+        result="${package_info[version]}"
+        ;;
+    esac
+    debug "get_version ${package_info[package_name]}"
+    debug "get_version.result: $result"
+    echo $result
   popd > /dev/null
-}
-
-# execute AFTER compiling
-hets_version() {
-  eval "declare -A package_info="${1#*=}
-  local version="$(hets_version_no "$(declare -p package_info)")"
-  local timestamp="$(hets_version_unix_timestamp "$(declare -p package_info)")"
-	echo "${version}-${timestamp}"
 }
 
 
@@ -309,15 +328,9 @@ hets_version() {
 bottle_formula() {
   eval "declare -A package_info="${1#*=}
   local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
+  debug "bottle_formula ${package_info[package_name]}"
 
   pushd "$repo_dir" > /dev/null
-    case "${package_info[package_name]}" in
-      "hets-desktop"|"hets-server")
-        install_hets_dependencies "$(declare -p package_info)"
-        ;;
-      *)
-        ;;
-    esac
 		compile_package "$(declare -p package_info)"
 		install_package_to_prefix "$(declare -p package_info)"
 		post_process_installation "$(declare -p package_info)"
@@ -328,24 +341,39 @@ bottle_formula() {
 
 versioned_bottle_dir() {
   eval "declare -A package_info="${1#*=}
-  local version="$(hets_version "$(declare -p package_info)")"
+  local version="${package_info[version]}"
+  case "${package_info[package_name]}" in
+    "hets-commons"|"hets-desktop"|"hets-server")
+      version="$(get_version "$(declare -p package_info)")"
+      ;;
+  esac
   local revision="${package_info[revision]}"
-	echo "${package_info[package_name]}/${version}_$revision"
+	local result="${package_info[package_name]}/${version}_$revision"
+  debug "versioned_bottle_dir ${package_info[package_name]}"
+  debug "versioned_bottle_dir.result: $result"
+  echo $result
 }
 
 tarball_name() {
   eval "declare -A package_info="${1#*=}
-  local version="$(hets_version "$(declare -p package_info)")"
+  local version="$(get_version "$(declare -p package_info)")"
   local revision="${package_info[revision]}"
-  echo "${package_info[package_name]}-${version}_$revision.tar.gz"
+  result="${package_info[package_name]}-${version}_$revision.tar.gz"
+  debug "tarball_name ${package_info[package_name]}"
+  debug "tarball_name.result: $result"
+  echo $result
 }
 
 tarball_name_with_os_and_revision() {
   eval "declare -A package_info="${1#*=}
   local OS="$2"
-  local version="$(hets_version "$(declare -p package_info)")"
+  local version="$(get_version "$(declare -p package_info)")"
   local revision="${package_info[revision]}"
-  echo "${package_info[package_name]}-${version}_$revision.$OS.bottle.$revision.tar.gz"
+  # echo "${package_info[package_name]}-${version}_$revision.$OS.bottle.$revision.tar.gz"
+  result="${package_info[package_name]}-${version}_$revision.$OS.bottle.tar.gz"
+  debug "tarball_name_with_os_and_revision ${package_info[package_name]}"
+  debug "tarball_name_with_os_and_revision.result: $result"
+  echo $result
 }
 
 create_tarball() {
@@ -357,6 +385,8 @@ create_tarball() {
     tar czf "$tarball" "$bottle_dir"
 
     local shasum=$(shasum -a 256 "$tarball" | cut -d ' ' -f1)
+    debug "create_tarball ${package_info[package_name]}"
+    debug "create_tarball.shasum: $shasum"
     echo -n "$shasum" > "${tarball}.sha256sum"
   popd > /dev/null
 }
@@ -365,14 +395,17 @@ upload_tarball() {
   eval "declare -A package_info="${1#*=}
 	local bottle_dir="$(versioned_bottle_dir "$(declare -p package_info)")"
   local tarball="$(tarball_name "$(declare -p package_info)")"
+  debug "upload_tarball ${package_info[package_name]}"
 
   pushd "$local_bottle_dir" > /dev/null
+    debug "upload_tarball: ssh $remote_homebrew_bottle_host mkdir -p $remote_homebrew_bottle_dir"
     ssh "$remote_homebrew_bottle_host" mkdir -p "$remote_homebrew_bottle_dir"
-    scp "$tarball" \
-      "${remote_homebrew_bottle_host}:${remote_homebrew_bottle_dir}"
+    debug "upload_tarball: scp $tarball ${remote_homebrew_bottle_host}:${remote_homebrew_bottle_dir}"
+    scp "$tarball" "${remote_homebrew_bottle_host}:${remote_homebrew_bottle_dir}"
     for OS in "${OSes[@]}"
     do
 			local bottle_filename="$(tarball_name_with_os_and_revision "$(declare -p package_info)" "$OS")"
+      debug "upload_tarball: ssh $remote_homebrew_bottle_host ln -f $remote_homebrew_bottle_dir/$tarball $remote_homebrew_bottle_dir/$bottle_filename"
 			ssh "$remote_homebrew_bottle_host" ln -f \
 				"$remote_homebrew_bottle_dir/$tarball" \
 				"$remote_homebrew_bottle_dir/$bottle_filename"
@@ -383,9 +416,13 @@ upload_tarball() {
 bottle_shasum() {
   eval "declare -A package_info="${1#*=}
   local tarball="$(tarball_name "$(declare -p package_info)")"
+  debug "bottle_shasum ${package_info[package_name]}"
+  debug "bottle_shasum.tarball: $tarball"
 
   pushd "$local_bottle_dir" > /dev/null
-    cat "${tarball}.sha256sum"
+    local result="$(cat "${tarball}.sha256sum")"
+    debug "bottle_shasum.shasum: $result"
+    echo $result
   popd > /dev/null
 }
 
@@ -398,22 +435,41 @@ bottle_shasum() {
 patch_formula() {
   eval "declare -A package_info="${1#*=}
   local formula_file="${package_info[package_name]}.rb"
+  local version_commit="$(get_version_commit_oid "$(declare -p package_info)")"
+  local sha256="$(bottle_shasum "$(declare -p package_info)")"
+  local the_version
+  case "${package_info[package_name]}" in
+    "hets-commons"|"hets-desktop"|"hets-server")
+      the_version="$(get_version "$(declare -p package_info)")"
+      ;;
+    *)
+      the_version="${package_info[version]}"
+      ;;
+  esac
+  debug "patch_formula.the_version: $the_version"
+  debug "patch_formula ${package_info[package_name]}"
+  debug "patch_formula.version_commit: $version_commit"
+  debug "patch_formula.sha256: $sha256"
   pushd "$base_dir" > /dev/null
-    $SED -i "s/@@version_commit = '.*/@@version_commit = '$(hets_version_commit_oid "$(declare -p package_info)")'/" $formula_file
-    $SED -i "s/@@version_no = '.*/@@version_no = '$(hets_version_no "$(declare -p package_info)")'/" $formula_file
-    $SED -i "s/@@version_unix_timestamp = '.*/@@version_unix_timestamp = '$(hets_version_unix_timestamp "$(declare -p package_info)")'/" $formula_file
+    $SED -i "s/@@version_commit = '.*/@@version_commit = '$version_commit'/" $formula_file
     $SED -i "s/  revision .*/  revision ${package_info[revision]}/" $formula_file
-    $SED -i "s/root_url '.*/root_url '$remote_homebrew_bottle_root_url'/" $formula_file
-    $SED -i "s/sha256 '[^']*'/sha256 '$(bottle_shasum "$(declare -p package_info)")'/g" $formula_file
+    $SED -i "s|root_url '.*|root_url '$remote_homebrew_bottle_root_url'|" $formula_file
+    $SED -i "s/sha256 '[^']*'/sha256 '$sha256'/g" $formula_file
+    $SED -i "s/@@version = .*/@@version = '$the_version'/" $formula_file
   popd > /dev/null
 }
 
 commit_formula() {
   eval "declare -A package_info="${1#*=}
   local formula_file="${package_info[package_name]}.rb"
+  local version="$(get_version "$(declare -p package_info)")"
+  local revision="${package_info[revision]}"
+  debug "commit_formula ${package_info[package_name]}"
+  debug "commit_formula.version: $version"
+  debug "commit_formula.revision: $revision"
   pushd "$base_dir" > /dev/null
     git add $formula_file
-    git commit -m "Update ${package_info[package_name]} to $(hets_version "$(declare -p package_info)")_${package_info[revision]}"
+    git commit -m "Update ${package_info[package_name]} to $version_${package_info[revision]}"
   popd > /dev/null
 }
 

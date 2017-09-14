@@ -2,18 +2,16 @@ require "formula"
 require 'rexml/document'
 
 class HetsServer < Formula
-  @@version_commit = 'b39edff7b191f41fb4b7268e00dd0289965ca9bf'
-  @@version_no = '0.99'
-  @@version_unix_timestamp = '1484075143'
-  homepage "http://hets.eu"
-  head "https://github.com/spechub/Hets.git", :using => :git
-  url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
-  version "#{@@version_no}-#{@@version_unix_timestamp}"
-  revision 2
+  @@version_commit = '430ab7208b425d007aa2d7e035eb0a3329da20bc'
+  @@version = '0.100.0'
+  homepage 'http://hets.eu'
+  head 'https://github.com/spechub/Hets.git', :using => :git
+  url 'https://github.com/spechub/Hets.git', :using => :git, :revision => @@version_commit
+  version @@version
+  revision 1
 
   bottle do
     root_url 'http://hets.eu/downloads/hets/macOS'
-    rebuild 2
     sha256 '62b9e681c3a14f898bba9ca812d3c83fccb4c7431d3cbb79d2a19e8829bc01a2' => :mavericks
     sha256 '62b9e681c3a14f898bba9ca812d3c83fccb4c7431d3cbb79d2a19e8829bc01a2' => :yosemite
     sha256 '62b9e681c3a14f898bba9ca812d3c83fccb4c7431d3cbb79d2a19e8829bc01a2' => :el_capitan
@@ -21,17 +19,15 @@ class HetsServer < Formula
     sha256 '62b9e681c3a14f898bba9ca812d3c83fccb4c7431d3cbb79d2a19e8829bc01a2' => :high_sierra
   end
 
-  depends_on 'cabal-install' => :build
-  depends_on 'ghc' => :build
+  depends_on 'haskell-stack' => :build
   depends_on 'glib' => :build
   depends_on 'binutils' => :build
 
   depends_on 'hets-commons'
-  depends_on 'wget'
 
-  # depends_on 'darwin' => :recommended
+  depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
-  # depends_on 'factplusplus' => :recommended
+  depends_on 'factplusplus' => :recommended
   depends_on 'owltools' => :recommended
   depends_on 'pellet' => :recommended
   depends_on 'spass' => :recommended

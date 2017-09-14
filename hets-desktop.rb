@@ -2,18 +2,16 @@ require "formula"
 require 'rexml/document'
 
 class HetsDesktop < Formula
-  @@version_commit = 'b39edff7b191f41fb4b7268e00dd0289965ca9bf'
-  @@version_no = '0.99'
-  @@version_unix_timestamp = '1484075143'
-  homepage "http://hets.eu"
-  head "https://github.com/spechub/Hets.git", :using => :git
-  url "https://github.com/spechub/Hets.git", :using => :git, :revision => @@version_commit
-  version "#{@@version_no}-#{@@version_unix_timestamp}"
-  revision 2
+  @@version_commit = '430ab7208b425d007aa2d7e035eb0a3329da20bc'
+  @@version = '0.100.0'
+  homepage 'http://hets.eu'
+  head 'https://github.com/spechub/Hets.git', :using => :git
+  url 'https://github.com/spechub/Hets.git', :using => :git, :revision => @@version_commit
+  version @@version
+  revision 1
 
   bottle do
     root_url 'http://hets.eu/downloads/hets/macOS'
-    rebuild 2
     sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :mavericks
     sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :yosemite
     sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :el_capitan
@@ -21,9 +19,7 @@ class HetsDesktop < Formula
     sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :high_sierra
   end
 
-  depends_on 'cabal-install' => :build
-  depends_on 'ghc' => :build
-  depends_on 'gcc49' => :build
+  depends_on 'haskell-stack' => :build
   depends_on 'glib' => :build
   depends_on 'binutils' => :build
 
@@ -37,7 +33,6 @@ class HetsDesktop < Formula
   depends_on 'hets-commons'
   depends_on 'udrawgraph'
   depends_on 'libglade'
-  depends_on 'wget'
 
   # depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
@@ -46,6 +41,10 @@ class HetsDesktop < Formula
   depends_on 'owltools' => :recommended
   depends_on 'pellet' => :recommended
   depends_on 'spass' => :recommended
+<<<<<<< HEAD
+=======
+  # depends_on 'vampire' => :recommended
+>>>>>>> Update Hets packaging.
 
   def install
     make_compile_target = 'hets.bin'
@@ -53,7 +52,9 @@ class HetsDesktop < Formula
     executable = 'hets'
     binary = "hets.bin"
 
-    install_dependencies
+    puts "Preparing the setup..."
+    system(%(stack setup))
+    system(%(make stack))
 
     puts "Compiling #{executable}..."
     system(%(make #{make_compile_target}))
@@ -68,36 +69,6 @@ class HetsDesktop < Formula
   end
 
   protected
-
-  def install_dependencies
-    ghc_prefix = `ghc --print-libdir | sed -e 's+/lib.*/.*++g'`.strip
-    opts = ['-p', '--global', "--prefix=#{ghc_prefix}"]
-    flags = %w()
-
-    package_list = `ghc-pkg list`
-    if !package_list.include?(' gtk-')
-      puts 'Installing dependencies...'
-
-      system('cabal', 'update')
-
-      # GTK needs special treatment on macOS: The order of installation steps is
-      # very important, as is the environment (pkg-config needs to be found).
-      # See also http://stackoverflow.com/a/38919482/2068056
-      ENV['PATH'] = "/usr/local/bin/:#{ENV['PATH']}"
-      ENV['PKG_CONFIG_PATH'] = "/usr/local/lib/pkgconfig:"
-      system('cabal', 'install', 'alex', 'happy', *opts)
-      system('cabal', 'install', 'gtk2hs-buildtools', *opts)
-      system('cabal', 'install', 'glib', *opts)
-      system('cabal', 'install', 'gtk', '-f', 'have-quartz-gtk', *opts)
-      Dir.mktmpdir do |tmpdir|
-        Dir.chdir(tmpdir) do
-          system('git', 'clone', '--depth=1', 'https://github.com/cmaeder/glade.git', 'glade')
-          system('cabal', 'install', 'glade/glade.cabal', *opts, '--with-gcc=gcc-4.9')
-        end
-      end
-    end
-    system('cabal', 'install', '--only-dependencies', *flags, *opts)
-  end
 
   # The wrapper script needs to use a shell that is certainly installed.
   # It needs to point to the correct executable.

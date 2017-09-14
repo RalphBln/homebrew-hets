@@ -10,12 +10,14 @@ base_dir=$(real_dirname $0)
 
 source "$base_dir/functions.sh"
 
-set -x
+debug_level=""
 
 sync_upstream_repository "$(declare -p factplusplus)"
 bottle_formula "$(declare -p factplusplus)"
+patch_formula "$(declare -p factplusplus)"
+# commit_formula "$(declare -p factplusplus)"
 
 echo ""
 echo "Done."
 echo ""
-echo "Remember to update the factplusplus.rb"
+echo "Remember to update the version in the factplusplus.rb"
