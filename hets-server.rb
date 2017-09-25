@@ -30,7 +30,6 @@ class HetsServer < Formula
 
   depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
-  depends_on 'factplusplus' => :recommended
   depends_on 'owltools' => :recommended
   depends_on 'pellet' => :recommended
   depends_on 'spass' => :recommended
