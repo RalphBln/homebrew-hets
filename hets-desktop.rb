@@ -38,8 +38,9 @@ class HetsDesktop < Formula
   depends_on 'libglade'
   depends_on 'wget'
 
-  depends_on 'darwin' => :recommended
+  # depends_on 'darwin' => :recommended
   depends_on 'eprover' => :recommended
+  # depends_on 'factplusplus' => :recommended
   depends_on 'leo2' => :recommended
   depends_on 'owltools' => :recommended
   depends_on 'pellet' => :recommended
