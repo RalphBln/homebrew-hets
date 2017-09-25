@@ -45,7 +45,6 @@ class HetsDesktop < Formula
   depends_on 'owltools' => :recommended
   depends_on 'pellet' => :recommended
   depends_on 'spass' => :recommended
-  depends_on 'vampire' => :recommended
 
   def install
     make_compile_target = 'hets.bin'
