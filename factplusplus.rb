@@ -17,7 +17,6 @@ class Factplusplus < Formula
   end
 
   depends_on :java
-  depends_on 'gmp'
   depends_on 'gcc' => :build
 
   def install
