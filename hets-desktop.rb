@@ -13,7 +13,7 @@ class HetsDesktop < Formula
 
   bottle do
     root_url 'http://hets.eu/downloads/hets/macOS'
-    revision 2
+    rebuild 2
     sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :mavericks
     sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :yosemite
     sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :el_capitan

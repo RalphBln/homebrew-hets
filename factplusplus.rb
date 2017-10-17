@@ -10,7 +10,7 @@ class Factplusplus < Formula
 
   bottle do
     root_url 'http://www.informatik.uni-bremen.de/~eugenk/homebrew-hets'
-    revision 1
+    rebuild 1
     sha256 '9690cf3031affe7f8d2b01246534302e26b1634ed60edbd82652ef64c9f5301d' => :mavericks
     sha256 '9690cf3031affe7f8d2b01246534302e26b1634ed60edbd82652ef64c9f5301d' => :yosemite
     sha256 '9690cf3031affe7f8d2b01246534302e26b1634ed60edbd82652ef64c9f5301d' => :el_capitan
