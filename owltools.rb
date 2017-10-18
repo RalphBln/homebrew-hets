@@ -1,13 +1,11 @@
 require "formula"
 
 class Owltools < Formula
-  version_commit = 'de2b683ce9196f7f73d994009bd562e25313a1ed'
-  the_version = '0.2.2-SNAPSHOT'
-  the_revision = '2'
+  version_commit = '447e4156287580cd1510b0371a49c1c99e207d34'
   homepage 'https://github.com/owlcollab/owltools'
   head 'https://github.com/owlcollab/owltools.git', :using => :git
   url 'https://github.com/owlcollab/owltools.git', :using => :git, :revision => version_commit
-  version "#{the_version}-#{the_revision}"
+  version '0.3.0'
 
   depends_on :java
   depends_on 'maven' => :build
@@ -15,7 +13,7 @@ class Owltools < Formula
   def install
     # build
     Dir.chdir('OWLTools-Parent') do
-      system('mvn clean install -Dmaven.test.skip.exec=true')
+      system('mvn clean install -DskipTests')
     end
 
     # install the software
@@ -44,17 +42,15 @@ class Owltools < Formula
     write_executable('OWLTools-Oort/bin/build-obo-ontologies.pl',     "#{executables_dir}/build-obo-ontologies.pl")
     write_executable('OWLTools-Oort/bin/create-ontology-project',     "#{executables_dir}/create-ontology-project")
     write_executable('OWLTools-Oort/bin/obo-assert-inferences',       "#{executables_dir}/obo-assert-inferences")
-    write_executable('OWLTools-Oort/bin/obo-roundtrip',               "#{executables_dir}/obo-roundtrip-oort")
+    write_executable('OWLTools-Oort/bin/obo-roundtrip',               "#{executables_dir}/obo-roundtrip")
     write_executable('OWLTools-Oort/bin/ontology-release-runner',     "#{executables_dir}/ontology-release-runner")
     write_executable('OWLTools-Oort/bin/ontology-release-runner-gui', "#{executables_dir}/ontology-release-runner-gui")
-    write_executable('OWLTools-Oort/bin/reasoner-diff',               "#{executables_dir}/reasoner-diff-oort")
-    write_executable('OWLTools-Runner/bin/obo-roundtrip',             "#{executables_dir}/obo-roundtrip")
+    write_executable('OWLTools-Oort/bin/reasoner-diff',               "#{executables_dir}/reasoner-diff")
     write_executable('OWLTools-Runner/bin/owltools',                  "#{executables_dir}/owltools")
-    write_executable('OWLTools-Runner/bin/phenolog-runner',           "#{executables_dir}/phenolog-runner")
-    write_executable('OWLTools-Runner/bin/reasoner-diff.sh',          "#{executables_dir}/reasoner-diff.sh")
   end
 
   def write_executable(binary_path, executable)
+    system("chmod +x #{prefix.join(binary_path)}")
     File.open(executable, 'w') do |f|
       f.puts <<FILE
 #!/bin/bash
