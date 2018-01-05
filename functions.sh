@@ -248,6 +248,7 @@ clone_upstream_repository() {
     mkdir -p "$local_upstream_repo_dir"
     pushd "$local_upstream_repo_dir" > /dev/null
       git clone "${package_info[upstream_repository]}" "$repo_dir"
+      git submodule update --init --recursive
     popd > /dev/null
   fi
 }
@@ -257,6 +258,7 @@ pull_upstream_repository() {
   local repo_dir="$local_upstream_repo_dir/${package_info[package_name]}"
   pushd "$repo_dir" > /dev/null
     git fetch
+    git submodule update --recursive
   popd > /dev/null
 }
 
