@@ -2,7 +2,7 @@ require "formula"
 require 'rexml/document'
 
 class HetsDesktop < Formula
-  @@version_commit = '430ab7208b425d007aa2d7e035eb0a3329da20bc'
+  @@version_commit = 'a389e88e0acb83d8489bdc5e55bc5522b152bbec'
   @@version = '0.100.0'
   homepage 'http://hets.eu'
   head 'https://github.com/spechub/Hets.git', :using => :git
@@ -12,11 +12,11 @@ class HetsDesktop < Formula
 
   bottle do
     root_url 'http://hets.eu/downloads/hets/macOS'
-    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :mavericks
-    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :yosemite
-    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :el_capitan
-    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :sierra
-    sha256 '2a6ed095ed9336afd407a62ddc85f2b31601e22a012e67728bfcf44f9ecbe173' => :high_sierra
+    sha256 'd9b2d1776edad08893129bb69f0d22cb9d1b2923d1c7969112fe4e1b81c44428' => :mavericks
+    sha256 'd9b2d1776edad08893129bb69f0d22cb9d1b2923d1c7969112fe4e1b81c44428' => :yosemite
+    sha256 'd9b2d1776edad08893129bb69f0d22cb9d1b2923d1c7969112fe4e1b81c44428' => :el_capitan
+    sha256 'd9b2d1776edad08893129bb69f0d22cb9d1b2923d1c7969112fe4e1b81c44428' => :sierra
+    sha256 'd9b2d1776edad08893129bb69f0d22cb9d1b2923d1c7969112fe4e1b81c44428' => :high_sierra
   end
 
   depends_on 'haskell-stack' => :build
