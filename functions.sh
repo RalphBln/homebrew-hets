@@ -65,7 +65,7 @@ factplusplus[ref]="${REF_FACTPLUSPLUS:-origin/master}"
 factplusplus[version]="${VERSION_FACTPLUSPLUS:-1}"
 factplusplus[revision]="${REVISION_FACTPLUSPLUS:-1}"
 
-OSes=('mavericks' 'yosemite' 'el_capitan' 'sierra')
+OSes=('mavericks' 'yosemite' 'el_capitan' 'sierra' 'high_sierra')
 
 ghc_prefix=`ghc --print-libdir | sed -e 's+/lib.*/.*++g'`
 cabal_options="-p --global --prefix=$ghc_prefix"
