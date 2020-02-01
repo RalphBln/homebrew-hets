@@ -17,6 +17,7 @@ class Leo2 < Formula
   depends_on 'camlp4' => :build
 
   def install
+    system('export OCAMLPARAM="safe-string=0,_"')
     Dir.chdir('src') do
       system('./configure', "--prefix=#{prefix}")
       system('make -j1 opt debug=false')

@@ -1,8 +1,8 @@
 require "formula"
 
 class Factplusplus < Formula
-  @@version_commit = '4cb618b0f26e8f7cd6a9243b0fc982a306d003ce'
-  the_version = '1.6.4'
+  @@version_commit = '2322e8c27906cb829f36464dee24ec69cea132c4'
+  the_version = '1.6.5'
   homepage 'http://owl.man.ac.uk/factplusplus/'
   head 'https://bitbucket.org/dtsarkov/factplusplus.git', :using => :git
   url 'https://bitbucket.org/dtsarkov/factplusplus.git', :using => :git, :revision => @@version_commit

@@ -12,6 +12,7 @@ class Owltools < Formula
 
   def install
     # build
+    system('export JAVA_HOME="$(/usr/libexec/java_home -v 1.8)"')
     Dir.chdir('OWLTools-Parent') do
       system('mvn clean install -DskipTests')
     end
